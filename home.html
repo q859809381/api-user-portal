@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五度易链-企业信息查询api_企业数据API接口开放平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* =========================================
+   五度易链 · 企业数据 API 开放平台 首页
+   结构 / 文案 1:1 保留自 api.datadowell.com/index 真实渲染 DOM
+   视觉系统（配色简化 · 宽度模型重构）：
+   · 美学方向：数据基础设施 / 开发者 · 克制专业
+   · 宽度模型：导航/Banner/各分区背景通栏(100%)；主体内容收进居中 .ax-inner(1180px)
+   · 配色：深蓝主色 brand + 单一青蓝 accent + 白/浅灰面 + 深色分带(flow/footer)，
+           去掉青→蓝大渐变与荧光绿、去掉各处深色径向大色块
+   · 字体：Sora(展示) / IBM Plex Sans + Noto Sans SC(正文) / JetBrains Mono(数据·接口·价格)
+   · 动效：进场错峰、滚动揭示、数字滚动、悬停微交互（克制）
+   · 类名前缀 .ax- / .wd-
+   ========================================= */
+@keyframes fadeUp{to{opacity:1;transform:none;}}
+@keyframes floatY{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+
+:root{
+  --paper:#ffffff; --bg:#f4f6fb; --bg2:#f7f9fc;
+  --ink:#0f1b2d; --ink2:#3a4a63; --muted:#64748b; --faint:#94a3b8;
+  --line:#e6eaf3; --line2:#eef1f8;
+  --brand:#2563eb; --brand-d:#1e40af; --accent:#0d9488;
+  --brand-grad:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
+  --dark:#0f1b2d; --dark2:#16233b; --dark-line:#26344d;
+  --glow:rgba(37,99,235,.14);
+  --shadow-sm:0 1px 2px rgba(15,27,45,.04),0 6px 16px rgba(15,27,45,.05);
+  --shadow-md:0 8px 28px rgba(15,27,45,.08),0 20px 48px rgba(15,27,45,.07);
+  --shadow-lg:0 30px 80px rgba(15,27,45,.16);
+  --fd:'Sora','Noto Sans SC',sans-serif;
+  --fb:'IBM Plex Sans','Noto Sans SC',sans-serif;
+  --fm:'JetBrains Mono','IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);overflow-x:auto;-webkit-font-smoothing:antialiased;}
+.home-wrapper{width:100%;min-width:1024px;margin:0 auto;background:var(--paper);font-family:var(--fb);color:var(--ink);position:relative;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit;}
+
+/* 居中窄内容容器：各分区背景通栏、主体内容收窄 */
+.ax-inner{width:100%;max-width:1440px;margin:0 auto;padding:0 32px;}
+
+/* 滚动进场揭示 */
+[data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);}
+[data-reveal].in{opacity:1;transform:none;}
+@media (prefers-reduced-motion:reduce){[data-reveal]{opacity:1!important;transform:none!important;} *{animation:none!important;}}
+
+/* 数据占位符号 —— 线性几何 */
+.ico{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;
+  background:#f1f5fb;border:1px solid var(--line);color:var(--brand);
+  font-size:12px;line-height:1;}
+.ico::before{content:attr(data-glyph);}
+
+/* ===== 顶部导航（通栏背景 · 窄内容） ===== */
+.ax-topbar{position:fixed;top:0;left:0;right:0;width:100%;height:66px;z-index:100;
+  background:rgba(255,255,255,.86);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);
+  border-bottom:1px solid var(--line);}
+.ax-topbar-in{max-width:1440px;height:66px;display:flex;align-items:center;}
+.ax-brand{display:flex;align-items:center;gap:11px;}
+.ax-logo{width:38px;height:38px;border-radius:11px;background:var(--brand-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:800;font-size:15px;box-shadow:0 6px 16px var(--glow);}
+.ax-bname{font-family:var(--fd);font-size:19px;font-weight:800;letter-spacing:.2px;line-height:1;color:var(--ink);}
+.ax-bname small{display:block;font-family:var(--fm);font-size:8px;font-weight:500;color:var(--faint);letter-spacing:1.5px;margin-top:3px;}
+.ax-bdiv{width:1px;height:26px;background:var(--line);margin:0 14px;}
+.ax-bname2{font-size:15px;font-weight:600;color:var(--ink2);}
+.ax-hsearch{margin-left:22px;width:260px;height:38px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 16px;font-size:13px;color:var(--faint);transition:.2s;}
+.ax-hsearch:hover{border-color:#cdd6e8;background:#fff;}
+.ax-hsearch .ico{width:24px;height:24px;background:none;border:none;font-size:19px;}
+.ax-hnav{margin-left:auto;display:flex;align-items:center;gap:22px;}
+.ax-hnav a{font-size:14px;font-weight:500;color:var(--ink2);cursor:pointer;position:relative;padding-bottom:4px;transition:color .2s;}
+.ax-hnav a::after{content:'';position:absolute;left:0;right:100%;bottom:0;height:2px;border-radius:2px;background:var(--brand);transition:right .28s cubic-bezier(.2,.7,.2,1);}
+.ax-hnav a:hover{color:var(--ink);}
+.ax-hnav a:hover::after,.ax-hnav a.active::after{right:0;}
+.ax-hnav a.active{color:var(--ink);font-weight:600;}
+.ax-caret{font-size:9px;color:var(--faint);margin-left:4px;}
+.ax-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;border:1px solid #d9e0ee;border-radius:20px;background:#fff;color:var(--ink2);font-size:13px;font-weight:500;cursor:pointer;transition:.2s;}
+.ax-pill:hover{border-color:var(--brand);color:var(--brand);}
+.ax-pill::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--brand);}
+.ax-bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--ink2);cursor:pointer;}
+.ax-bell svg{width:19px;height:19px;display:block;}
+.ax-bell .dot{position:absolute;top:-2px;right:-3px;min-width:16px;height:16px;border-radius:8px;background:var(--brand);color:#fff;font-family:var(--fm);font-weight:700;font-size:9px;display:flex;align-items:center;justify-content:center;padding:0 3px;box-shadow:0 0 0 2px #fff;}
+.ax-acct{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;background:var(--brand-grad);color:#fff;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;box-shadow:0 6px 16px var(--glow);transition:.2s;}
+.ax-acct:hover{filter:brightness(1.06);}
+.ax-hlogin{padding:7px 22px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-weight:500;color:var(--ink2);background:#fff;}
+.ax-hlogin:hover{border-color:var(--brand);color:var(--brand);}
+
+/* ===== 账户悬浮下拉 ===== */
+.ax-acct-wrap{position:relative;display:inline-flex;}
+.ax-acct-menu{position:absolute;top:calc(100% + 12px);right:0;width:250px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-lg);z-index:300;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease,visibility .18s;}
+.ax-acct-menu::before{content:'';position:absolute;top:-14px;left:0;right:0;height:14px;}
+.ax-acct-wrap:hover .ax-acct-menu{opacity:1;visibility:visible;transform:none;}
+.ax-am-head{display:flex;align-items:center;gap:12px;padding:18px 18px 16px;border-bottom:1px solid var(--line2);}
+.ax-am-avatar{width:46px;height:46px;border-radius:50%;background:#eef1f6;color:#9aa6be;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ax-am-name{font-size:15px;font-weight:700;color:var(--ink);line-height:1.3;}
+.ax-am-phone{font-size:13px;color:var(--muted);margin-top:2px;}
+.ax-am-bal{display:flex;align-items:center;gap:9px;padding:14px 18px;border-bottom:1px solid var(--line2);}
+.ax-am-yen{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--faint);color:var(--ink2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.ax-am-baltxt{font-size:14px;color:var(--muted);}
+.ax-am-baltxt b{font-family:var(--fm);font-size:16px;font-weight:700;color:#e6432c;margin-left:2px;}
+.ax-am-charge{margin-left:auto;padding:6px 18px;background:var(--brand);color:#fff;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:.2s;}
+.ax-am-charge:hover{background:var(--brand-d);}
+.ax-am-list{padding:8px 8px 4px;}
+.ax-am-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:9px;font-size:14px;color:var(--ink2);cursor:pointer;transition:background .15s,color .15s;}
+.ax-am-item:hover{background:var(--bg2);color:var(--brand);}
+.ax-am-item svg{flex-shrink:0;}
+.ax-am-sep{height:1px;background:var(--line2);margin:4px 12px;}
+.ax-am-logout{margin:0 8px 8px;}
+
+/* ===== Hero（通栏背景 · 窄内容 · 去右侧配图） ===== */
+.ax-hero{width:100%;position:relative;overflow:hidden;margin-top:66px;
+  background:
+    radial-gradient(1100px 460px at 82% -6%,rgba(37,99,235,.10),transparent 60%),
+    linear-gradient(180deg,#f4f7fd 0%,#eaf0fa 100%);}
+.ax-grid{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(37,99,235,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,235,.04) 1px,transparent 1px);
+  background-size:38px 38px;
+  -webkit-mask-image:radial-gradient(1150px 560px at 62% 36%,#000 0%,transparent 76%);
+  mask-image:radial-gradient(1150px 560px at 62% 36%,#000 0%,transparent 76%);}
+.ax-noise{position:absolute;inset:0;pointer-events:none;opacity:.4;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");}
+.ax-hero-in{position:relative;display:flex;align-items:flex-start;gap:40px;padding-top:56px;padding-bottom:150px;z-index:3;}
+.ax-hero-menu{width:288px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-md);padding:8px 0;z-index:3;animation:fadeUp .8s cubic-bezier(.2,.7,.2,1) both;}
+.ax-hero-menu .ico{width:30px;height:30px;font-size:17px;border-radius:9px;}
+.ax-hero-menu .ax-caret{font-size:15px;color:var(--muted);margin-left:auto;}
+.ax-hm-item{padding:12px 20px;transition:background .2s;}
+.ax-hm-item:hover{background:var(--bg2);}
+.ax-hm-head{display:flex;align-items:center;gap:11px;font-family:var(--fd);font-size:15px;font-weight:600;color:var(--ink);}
+.ax-hm-head .ax-caret{margin-left:auto;}
+.ax-hm-sub{display:flex;gap:9px;margin-top:8px;padding-left:35px;}
+.ax-hm-sub a{font-size:13px;color:var(--muted);cursor:pointer;transition:color .2s;}
+.ax-hm-sub a:hover{color:var(--brand);}
+.ax-hm-sub .sep{color:#d7deea;align-self:center;}
+.ax-hm-more{border-top:1px solid var(--line2);margin-top:6px;padding:13px 20px;font-size:14px;font-weight:500;color:var(--brand);cursor:pointer;display:flex;align-items:center;gap:8px;}
+.ax-hm-more:hover{color:var(--accent);}
+.ax-hero-copy{position:relative;flex:1;min-width:0;max-width:600px;z-index:3;min-height:440px;display:flex;flex-direction:column;justify-content:center;}
+.ax-hero-eyebrow{display:inline-block;font-family:var(--fm);font-size:12px;font-weight:700;letter-spacing:2px;color:#1e40af;background:#e8f0fe;border:1px solid #d3e2fb;padding:6px 12px;border-radius:20px;margin-bottom:22px;animation:fadeUp .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:.05s;}
+.ax-hero-title{font-family:var(--fd);font-size:44px;font-weight:800;color:var(--ink);line-height:1.26;letter-spacing:-.5px;margin-bottom:24px;max-width:700px;min-height:112px;text-wrap:balance;animation:fadeUp .8s cubic-bezier(.2,.7,.2,1) both;animation-delay:.12s;}
+.ax-hero-title .hl{color:var(--brand);}
+.ax-hero-points{list-style:none;margin-bottom:32px;min-height:150px;}
+.ax-hero-points li{font-size:16px;color:var(--ink2);line-height:2.35;display:flex;align-items:center;gap:12px;animation:fadeUp .8s cubic-bezier(.2,.7,.2,1) both;}
+.ax-hero-points li:nth-child(1){animation-delay:.2s;}
+.ax-hero-points li:nth-child(2){animation-delay:.28s;}
+.ax-hero-points li:nth-child(3){animation-delay:.36s;}
+.ax-hero-points li:nth-child(4){animation-delay:.44s;}
+.ax-hero-points li::before{content:'';flex:none;width:22px;height:22px;border-radius:7px;background:var(--brand-grad);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 6L9 17l-5-5' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/15px 15px no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M20 6L9 17l-5-5' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/15px 15px no-repeat;}
+.ax-hero-btn{padding:14px 38px;font-family:var(--fd);font-size:15px;font-weight:600;border-radius:11px;background:var(--brand-grad);color:#fff;box-shadow:0 10px 26px var(--glow);transition:transform .2s,box-shadow .2s;align-self:flex-start;animation:fadeUp .8s cubic-bezier(.2,.7,.2,1) both;animation-delay:.52s;}
+.ax-hero-btn:hover{transform:translateY(-2px);box-shadow:0 16px 34px var(--glow);}
+.ax-dots{display:flex;gap:8px;margin-top:34px;position:relative;z-index:3;align-self:flex-start;}
+.ax-dot{width:34px;height:5px;border-radius:3px;background:#cdd6e8;cursor:pointer;transition:.2s;}
+.ax-dot.on{background:var(--brand);}
+/* 右侧接口响应示意卡（两屏共用 · 固定位置 · 填充留白） */
+.ax-hero-visual{position:absolute;right:calc(32px + max(0px, (100vw - 1440px)/2));top:118px;width:372px;z-index:2;pointer-events:none;animation:fadeUp .9s cubic-bezier(.2,.7,.2,1) .3s both;}
+.ax-vterm{background:rgba(255,255,255,.74);border:1px solid rgba(37,99,235,.18);border-radius:14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 18px 50px rgba(30,64,175,.10);overflow:hidden;}
+.ax-vterm-bar{height:38px;display:flex;align-items:center;gap:6px;padding:0 14px;background:rgba(241,245,251,.85);border-bottom:1px solid rgba(37,99,235,.12);}
+.ax-vterm-bar i{width:9px;height:9px;border-radius:50%;background:#cbd5e1;}
+.ax-vterm-bar i:first-child{background:#f87171;}
+.ax-vterm-bar i:nth-child(2){background:#fbbf24;}
+.ax-vterm-bar i:nth-child(3){background:#34d399;}
+.ax-vterm-bar span{margin-left:auto;font-family:var(--fm);font-size:11px;color:var(--muted);}
+.ax-vterm-body{padding:16px 18px 14px;}
+.ax-vreq{font-family:var(--fm);font-size:12px;color:var(--ink2);margin-bottom:12px;}
+.ax-vreq em{display:inline-block;font-style:normal;font-weight:700;color:#fff;background:var(--accent);border-radius:4px;padding:2px 6px;margin-right:6px;font-size:11px;}
+.ax-vterm-body pre{margin:0;font-family:var(--fm);font-size:11.5px;line-height:1.9;color:#64748b;white-space:pre-wrap;}
+.ax-vterm-body pre .k{color:var(--brand);}
+.ax-vterm-body pre .v{color:var(--accent);}
+.ax-vterm-foot{display:flex;align-items:center;gap:14px;padding:10px 18px;border-top:1px solid rgba(37,99,235,.12);font-family:var(--fm);font-size:11px;color:var(--muted);}
+.ax-vterm-foot .ok{color:#059669;font-weight:600;}
+.ax-vbadge{position:absolute;background:#fff;border:1px solid rgba(37,99,235,.16);border-radius:9px;padding:8px 12px;font-family:var(--fd);font-size:12px;font-weight:600;color:var(--ink2);box-shadow:0 8px 24px rgba(30,64,175,.10);white-space:nowrap;}
+.ax-vbadge-1{top:-22px;right:-18px;animation:floatY 4s ease-in-out infinite;}
+.ax-vbadge-2{bottom:-20px;left:-26px;animation:floatY 4.6s ease-in-out infinite reverse;}
+@media(max-width:1100px){.ax-hero-visual{display:none;}}
+.ax-float{position:fixed;right:24px;top:calc(50% - 120px);width:60px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-md);z-index:95;overflow:hidden;}
+.ax-float div{padding:13px 0;text-align:center;font-size:10px;font-weight:500;color:var(--muted);cursor:pointer;transition:.2s;}
+.ax-float div+div{border-top:1px solid var(--line2);}
+.ax-float .totop{display:none;}
+.ax-float.show-top .totop{display:block;}
+.ax-float div:hover{background:var(--bg2);color:var(--brand);}
+.ax-float div i{display:block;margin:0 auto 5px;width:18px;height:18px;background:currentColor;-webkit-mask:var(--g) center/contain no-repeat;mask:var(--g) center/contain no-repeat;}
+.ax-float .try{background:var(--brand-grad);color:#fff;font-weight:600;}
+.ax-float .try i{background:#fff;}
+
+/* ===== 数据规模卡（上移半盖 Banner · 窄内容） ===== */
+.ax-stats{width:100%;background:transparent;margin-top:-78px;position:relative;z-index:8;}
+.ax-stats-in{display:flex;gap:22px;}
+.ax-stat-card{flex:1;background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 26px;position:relative;overflow:hidden;display:flex;align-items:flex-start;justify-content:space-between;box-shadow:var(--shadow-md);transition:transform .25s,box-shadow .25s;}
+.ax-stat-card::before{content:'';position:absolute;left:0;top:0;height:3px;width:100%;background:var(--brand-grad);opacity:0;transition:.25s;}
+.ax-stat-card:hover{transform:translateY(-4px);}
+.ax-stat-card:hover::before{opacity:1;}
+.ax-stat-label{font-size:14px;font-weight:500;color:var(--muted);margin-bottom:12px;}
+.ax-stat-num{font-family:var(--fm);font-size:42px;font-weight:700;line-height:1;color:var(--ink);letter-spacing:-1px;}
+.ax-stat-num small{font-family:var(--fd);font-size:15px;color:var(--brand);font-weight:700;margin-left:3px;}
+.ax-stat-ico{width:50px;height:50px;border-radius:14px;font-size:21px;}
+
+/* ===== 核心主张 ===== */
+.ax-core{width:100%;padding:60px 32px 18px;background:var(--paper);text-align:center;}
+.ax-core-title{font-family:var(--fd);font-size:32px;font-weight:800;letter-spacing:.5px;color:var(--ink);margin-bottom:16px;}
+.ax-core-title em{font-style:normal;color:var(--brand);}
+.ax-core-sub{font-size:15px;color:var(--muted);line-height:1.9;max-width:760px;margin:0 auto;}
+
+/* ===== 通用分区标题 ===== */
+.ax-sec-title{text-align:center;font-family:var(--fd);font-size:30px;font-weight:800;letter-spacing:-.3px;color:var(--ink);margin-bottom:10px;}
+.ax-sec-title em{font-style:normal;color:var(--brand);}
+.ax-sec-sub{text-align:center;font-size:15px;color:var(--muted);margin-bottom:40px;}
+
+/* ===== 字段预览（类目 Tab + 接口字段卡） ===== */
+.ax-fields{width:100%;background:var(--paper);}
+.ax-fields-in{padding:34px 32px 64px;}
+.ax-tab-nav{display:flex;justify-content:center;gap:12px;margin-bottom:32px;flex-wrap:wrap;}
+.ax-tab-btn{display:inline-flex;align-items:center;gap:9px;padding:11px 26px;border:1px solid var(--line);border-radius:26px;font-family:var(--fd);font-size:15px;font-weight:600;color:var(--ink2);background:#fff;cursor:pointer;transition:.2s;}
+.ax-tab-btn .ico{width:22px;height:22px;}
+.ax-tab-btn:hover{border-color:#cdd6e8;transform:translateY(-1px);}
+.ax-tab-btn.on{color:#fff;background:var(--brand-grad);border-color:transparent;box-shadow:0 8px 20px var(--glow);}
+.ax-tab-btn.on .ico{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.32);color:#fff;}
+.ax-tab-panel{display:none;grid-template-columns:repeat(4,1fr);gap:20px;}
+.ax-tab-panel.on{display:grid;animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) both;}
+.ax-fcard{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s;}
+.ax-fcard:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);}
+.ax-fcard-h{background:#f7f9fd;color:var(--ink);font-family:var(--fd);font-size:16px;font-weight:700;padding:15px 18px 15px 20px;display:flex;align-items:center;justify-content:space-between;position:relative;border-bottom:1px solid var(--line);}
+.ax-fcard-h::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--brand);}
+.ax-fcard-h .arr{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--brand);transition:.2s;}
+.ax-fcard:hover .arr{background:var(--brand);color:#fff;border-color:var(--brand);}
+.ax-fcard-b{padding:16px 18px;}
+.ax-fchip{display:inline-block;padding:5px 11px;margin:0 7px 8px 0;font-family:var(--fm);font-size:12px;border:1px solid var(--line);border-radius:6px;color:var(--ink2);background:var(--bg2);transition:.2s;}
+.ax-fchip::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:6px;vertical-align:middle;}
+.ax-fchip:hover{border-color:var(--brand);color:var(--brand);background:#fff;}
+.ax-fields-more{text-align:center;margin-top:36px;}
+.ax-btn-blue{padding:13px 34px;font-family:var(--fd);font-size:15px;font-weight:600;border-radius:11px;background:var(--brand-grad);color:#fff;box-shadow:0 10px 24px var(--glow);transition:transform .2s,box-shadow .2s;}
+.ax-btn-blue:hover{transform:translateY(-2px);box-shadow:0 16px 34px var(--glow);}
+
+/* ===== 多领域覆盖（场景：左竖向菜单 + 右接口卡） ===== */
+.ax-scenes{width:100%;background:#f4f7fc;position:relative;overflow:hidden;}
+.ax-scenes .ax-grid{opacity:.5;}
+.ax-scenes-in{padding:64px 32px 68px;}
+.ax-scene-wrap{display:flex;gap:22px;align-items:stretch;position:relative;z-index:2;}
+.ax-scene-side{width:250px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 0;display:flex;flex-direction:column;box-shadow:var(--shadow-sm);}
+.ax-scene-item{display:flex;align-items:center;gap:13px;padding:17px 22px;font-family:var(--fd);font-size:15.5px;font-weight:500;color:var(--ink2);cursor:pointer;position:relative;transition:.2s;}
+.ax-scene-item::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:3px;background:transparent;transition:.2s;}
+.ax-scene-item:hover{background:var(--bg2);}
+.ax-scene-item.on{color:var(--ink);font-weight:700;background:var(--bg2);}
+.ax-scene-item.on::before{background:var(--brand);}
+.ax-scene-item .ico{width:28px;height:28px;font-size:14px;}
+.ax-scene-side .spacer{flex:1;}
+.ax-scene-side .more{margin:14px 18px 6px;padding:12px 0;text-align:center;font-family:var(--fd);font-size:14px;font-weight:600;border:1px solid #d3e2fb;color:var(--brand);border-radius:10px;background:#fff;cursor:pointer;transition:.2s;}
+.ax-scene-side .more:hover{background:var(--brand-grad);color:#fff;border-color:transparent;}
+.ax-scene-main{flex:1;min-width:0;}
+.ax-scene-panel{display:none;}
+.ax-scene-panel.on{display:block;animation:fadeUp .5s cubic-bezier(.2,.7,.2,1) both;}
+.ax-scene-intro{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px 28px;margin-bottom:20px;position:relative;box-shadow:var(--shadow-sm);}
+.ax-scene-intro h3{font-family:var(--fd);font-size:20px;font-weight:800;margin-bottom:10px;color:var(--ink);}
+.ax-scene-intro p{font-size:14px;color:var(--muted);line-height:1.8;max-width:640px;}
+.ax-scene-intro .vbtn{margin-top:16px;padding:9px 20px;font-family:var(--fd);font-size:13px;font-weight:600;border:1px solid #cfd8ee;color:var(--brand);border-radius:9px;background:#fff;transition:.2s;}
+.ax-scene-intro .vbtn:hover{background:var(--brand-grad);color:#fff;border-color:transparent;}
+.ax-api-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+.ax-api-card{border:1px solid var(--line);border-radius:14px;padding:20px;background:#fff;display:flex;flex-direction:column;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s,border-color .25s;}
+.ax-api-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-md);border-color:#cdd6e8;}
+.ax-ac-name{font-family:var(--fd);font-size:16.5px;font-weight:700;color:var(--ink);margin-bottom:14px;}
+.ax-ac-fields{flex:1;margin-bottom:16px;}
+.ax-ac-field{display:block;font-family:var(--fm);font-size:12.5px;color:var(--muted);line-height:2;}
+.ax-ac-field::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle;}
+.ax-ac-foot{display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--line2);}
+.ax-ac-price{font-family:var(--fm);font-size:13px;color:var(--muted);}
+.ax-ac-price b{font-family:var(--fm);font-size:24px;font-weight:700;color:var(--brand);margin-right:1px;}
+.ax-ac-price.na b{font-family:var(--fd);font-size:18px;color:var(--ink2);}
+.ax-ac-btn{font-family:var(--fd);font-size:13px;font-weight:600;color:var(--brand);cursor:pointer;transition:.2s;}
+.ax-ac-btn:hover{color:var(--accent);}
+
+/* ===== 为什么选择我们（去大色块 · 克制白卡） ===== */
+.ax-why{width:100%;background:var(--paper);}
+.ax-why-in{padding:60px 32px 56px;}
+.ax-why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:36px;}
+.ax-why-card{position:relative;background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px 30px 32px;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s,border-color .25s;}
+.ax-why-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-md);border-color:#cfd9ee;}
+.ax-why-idx{font-family:var(--fm);font-size:13px;font-weight:700;letter-spacing:1px;color:var(--brand);margin-bottom:16px;}
+.ax-why-name{font-family:var(--fd);font-size:21px;font-weight:800;color:var(--ink);margin-bottom:12px;}
+.ax-why-desc{font-size:14px;color:var(--muted);line-height:1.8;}
+
+/* ===== 数据服务对接流程 ===== */
+.ax-flow{width:100%;background:var(--dark);position:relative;overflow:hidden;}
+.ax-flow .ax-grid{opacity:.4;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);}
+.ax-flow-in{padding:68px 32px 72px;}
+.ax-flow .ax-sec-title{color:#fff;}
+.ax-flow .ax-sec-title em{color:#6ea8fe;}
+.ax-flow-steps{display:flex;align-items:flex-start;justify-content:center;margin-top:44px;position:relative;z-index:2;}
+.ax-flow-step{width:240px;text-align:center;}
+.ax-flow-ico{position:relative;width:92px;height:92px;margin:0 auto 22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);border:1px solid var(--dark-line);color:#cfe0ff;}
+.ax-flow-ico::before{content:attr(data-glyph);font-size:29px;line-height:1;}
+.ax-flow-t{font-family:var(--fd);font-size:18px;font-weight:700;color:#fff;margin-bottom:10px;}
+.ax-flow-d{font-size:13px;color:rgba(255,255,255,.6);line-height:1.7;padding:0 14px;}
+.ax-flow-arrow{width:44px;text-align:center;font-size:22px;color:#5b8def;padding-top:34px;opacity:.7;}
+
+/* ===== 定价与计费 ===== */
+.ax-pricing{width:100%;background:var(--paper);}
+.ax-pricing-in{padding:64px 32px 34px;}
+.ax-price-cards{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:36px;}
+.ax-price-box{position:relative;overflow:hidden;border-radius:16px;padding:34px 38px;min-height:240px;display:flex;flex-direction:column;transition:transform .25s,box-shadow .25s;}
+.ax-price-box:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);}
+.ax-price-box.dark,.ax-price-box.light{background:#fff;border:1px solid var(--line);}
+.ax-pb-name{font-family:var(--fd);font-size:23px;font-weight:800;margin-bottom:16px;color:var(--ink);position:relative;z-index:2;}
+.ax-pb-name::after{content:'';position:absolute;left:0;bottom:-8px;width:38px;height:3px;border-radius:3px;background:var(--brand);}
+.ax-pb-desc{font-size:14px;line-height:1.9;color:var(--ink2);max-width:460px;position:relative;z-index:2;}
+.ax-pb-link{margin-top:auto;padding-top:18px;font-family:var(--fd);font-size:15px;font-weight:700;cursor:pointer;position:relative;z-index:2;width:max-content;color:var(--brand);}
+.ax-pb-link:hover{color:var(--accent);}
+.ax-guarantee{display:flex;justify-content:center;gap:52px;margin:40px 0 26px;flex-wrap:wrap;}
+.ax-guarantee span{font-family:var(--fd);font-size:21px;font-weight:600;color:var(--ink);}
+.ax-guarantee span em{font-style:normal;color:var(--brand);}
+.ax-price-cta{text-align:center;}
+.ax-price-cta .num{font-family:var(--fm);font-size:17px;color:var(--muted);margin-bottom:22px;}
+.ax-price-cta .num b{color:var(--ink);font-weight:700;}
+.ax-price-cta button{padding:14px 44px;font-family:var(--fd);font-size:15px;font-weight:600;border-radius:11px;background:var(--brand-grad);color:#fff;box-shadow:0 10px 26px var(--glow);transition:transform .2s,box-shadow .2s;}
+.ax-price-cta button:hover{transform:translateY(-2px);box-shadow:0 16px 36px var(--glow);}
+
+/* ===== 页脚 ===== */
+.ax-footer{width:100%;background:var(--dark);color:#c3ccdc;position:relative;overflow:hidden;}
+.ax-footer .ax-grid{opacity:.2;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);}
+.ax-footer-in{padding:52px 32px 34px;}
+.ax-footer-top{display:flex;align-items:flex-start;gap:56px;position:relative;z-index:2;}
+.ax-fbrand{display:flex;align-items:center;gap:11px;color:#fff;}
+.ax-flogo{width:40px;height:40px;border-radius:11px;background:var(--brand-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:800;font-size:15px;}
+.ax-fbname{font-family:var(--fd);font-size:19px;font-weight:800;line-height:1;}
+.ax-fbname small{display:block;font-family:var(--fm);font-size:8px;font-weight:500;color:#7a8492;letter-spacing:1.5px;margin-top:3px;}
+.ax-fhours{font-family:var(--fm);font-size:12px;color:#8a94a2;margin-top:10px;}
+.ax-finfo p,.ax-fright p{font-size:13px;color:#9aa4b2;line-height:2.2;}
+.ax-finfo a:hover{color:#fff;}
+.ax-fright{margin-left:auto;text-align:right;}
+
+/* ===== 登录弹窗 ===== */
+.wd-overlay{position:fixed;inset:0;background:rgba(15,27,45,.5);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:1000;font-family:var(--fb);color:var(--ink);}
+.wd-overlay.open{display:flex;animation:fadeUp .25s ease both;}
+.wd-modal{position:relative;background:#fff;border-radius:18px;padding:32px 34px;width:440px;max-height:88vh;overflow-y:auto;box-shadow:var(--shadow-lg);border:1px solid var(--line);}
+.wd-close{position:absolute;top:16px;right:18px;width:30px;height:30px;line-height:30px;text-align:center;font-size:18px;color:var(--faint);border-radius:8px;cursor:pointer;transition:.2s;}
+.wd-close:hover{color:var(--ink);background:var(--bg2);}
+.wd-modal-title{font-family:var(--fd);font-size:21px;font-weight:800;margin-bottom:20px;}
+.lg-tabs{display:flex;gap:24px;border-bottom:1px solid var(--line);margin-bottom:22px;}
+.lg-tab{padding:9px 0;font-family:var(--fd);font-size:15px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.2s;}
+.lg-tab.active{color:var(--ink);font-weight:700;border-bottom-color:var(--brand);}
+.lg-field{margin-bottom:14px;}
+.lg-field input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:var(--fb);color:var(--ink);background:var(--bg2);transition:.2s;}
+.lg-field input:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px var(--glow);}
+.lg-code-row{display:flex;gap:10px;}
+.lg-code-row input{flex:1;}
+.lg-code-btn{padding:0 16px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:13px;font-weight:500;color:var(--brand);white-space:nowrap;transition:.2s;}
+.lg-code-btn:hover{border-color:var(--brand);background:var(--bg2);}
+.lg-submit{width:100%;margin-top:10px;padding:12px 0;font-family:var(--fd);font-weight:700;background:var(--brand-grad);border-radius:10px;color:#fff;font-size:15px;box-shadow:0 8px 20px var(--glow);transition:transform .2s;}
+.lg-submit:hover{transform:translateY(-1px);}
+.lg-tip{text-align:center;font-size:12px;color:var(--faint);margin-top:16px;}
+.wd-toast{position:fixed;left:50%;bottom:60px;transform:translateX(-50%) translateY(10px);background:var(--dark);color:#fff;font-size:13px;font-weight:500;padding:12px 22px;border-radius:12px;z-index:2000;display:none;white-space:nowrap;box-shadow:var(--shadow-lg);border:1px solid var(--dark-line);}
+.wd-toast::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#6ea8fe;margin-right:10px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<div class="home-wrapper">
+
+  <!-- ===== 顶部导航 ===== -->
+  <header class="ax-topbar">
+    <div class="ax-inner ax-topbar-in">
+      <div class="ax-brand">
+        <div class="ax-logo">5E</div>
+        <div class="ax-bname">5度易链<small>5 DEGREE EASY CHAIN</small></div>
+      </div>
+      <span class="ax-bdiv"></span>
+      <div class="ax-bname2">API开放平台</div>
+      <div class="ax-hsearch" onclick="demoOnly('搜索接口名称/接口ID')"><span>请输入接口名称/接口ID</span><span class="ico" data-glyph="⌕"></span></div>
+      <nav class="ax-hnav">
+        <a class="active">首页</a>
+        <a onclick="goto('#scenes')">API市场<span class="ax-caret">▾</span></a>
+        <a onclick="demoOnly('AI报告')">AI报告<span class="ax-caret">▾</span></a>
+        <a onclick="demoOnly('应用中心')">应用中心<span class="ax-caret">▾</span></a>
+        <a onclick="demoOnly('数据定制')">数据定制</a>
+        <span class="ax-pill" onclick="openModal('loginModal')">充值中心</span>
+        <span class="ax-bell" onclick="showToast('暂无新消息')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot">5</span></span>
+        <span class="ax-acct-wrap">
+          <span class="ax-acct" onclick="location.href='个人中心.html'">177****5505<span class="ax-caret" style="color:#cdd8ea;">▾</span></span>
+          <div class="ax-acct-menu">
+            <div class="ax-am-head">
+              <div class="ax-am-avatar"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+              <div><div class="ax-am-name">177****5505</div><div class="ax-am-phone">177****5505</div></div>
+            </div>
+            <div class="ax-am-bal">
+              <span class="ax-am-yen">¥</span>
+              <span class="ax-am-baltxt">余额<b>965.86元</b></span>
+              <span class="ax-am-charge" onclick="openModal('loginModal')">充值</span>
+            </div>
+            <div class="ax-am-list">
+              <a class="ax-am-item" onclick="demoOnly('我的接口')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 14.5l5-5"/><path d="M11 6.5l1.2-1.2a3.8 3.8 0 015.4 5.4L16.4 12"/><path d="M13 17.5l-1.2 1.2a3.8 3.8 0 01-5.4-5.4L7.6 12"/></svg>我的接口</a>
+              <a class="ax-am-item" onclick="demoOnly('我的订单')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4"/><path d="M10 12h6M10 16h6"/></svg>我的订单</a>
+              <a class="ax-am-item" onclick="location.href='个人中心.html'"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>账号设置</a>
+            </div>
+            <div class="ax-am-sep"></div>
+            <a class="ax-am-item ax-am-logout" onclick="demoOnly('安全退出')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a2 2 0 012 2v12a2 2 0 01-2 2h-4"/><path d="M10 8l-4 4 4 4"/><path d="M6 12h9"/></svg>安全退出</a>
+          </div>
+        </span>
+        <button class="ax-hlogin" style="display:none;" id="hlogin" onclick="openModal('loginModal')">登录/注册</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <section class="ax-hero">
+    <div class="ax-grid"></div>
+    <div class="ax-noise"></div>
+
+    <div class="ax-inner ax-hero-in">
+      <!-- 左侧悬浮分类菜单 -->
+      <div class="ax-hero-menu">
+        <div class="ax-hm-item"><div class="ax-hm-head"><span class="ico" data-glyph="⌕"></span>搜索查询<span class="ax-caret">›</span></div><div class="ax-hm-sub"><a onclick="demoOnly('企业模糊搜索')">企业模糊搜索</a><span class="sep">|</span><a onclick="demoOnly('企业高级筛选')">企业高级筛选</a></div></div>
+        <div class="ax-hm-item"><div class="ax-hm-head"><span class="ico" data-glyph="▦"></span>工商信息<span class="ax-caret">›</span></div><div class="ax-hm-sub"><a onclick="demoOnly('企业工商信息')">企业工商信息</a><span class="sep">|</span><a onclick="demoOnly('企业对外投资')">企业对外投资</a></div></div>
+        <div class="ax-hm-item"><div class="ax-hm-head"><span class="ico" data-glyph="⚖"></span>司法诉讼<span class="ax-caret">›</span></div><div class="ax-hm-sub"><a onclick="demoOnly('失信被执行人')">失信被执行人</a><span class="sep">|</span><a onclick="demoOnly('限制高消费')">限制高消费</a></div></div>
+        <div class="ax-hm-item"><div class="ax-hm-head"><span class="ico" data-glyph="⚠"></span>经营风险<span class="ax-caret">›</span></div><div class="ax-hm-sub"><a onclick="demoOnly('重大税收违法')">重大税收违法</a><span class="sep">|</span><a onclick="demoOnly('经营异常')">经营异常</a></div></div>
+        <div class="ax-hm-item"><div class="ax-hm-head"><span class="ico" data-glyph="◎"></span>知识产权<span class="ax-caret">›</span></div><div class="ax-hm-sub"><a onclick="demoOnly('专利基本信息')">专利基本信息</a><span class="sep">|</span><a onclick="demoOnly('商标基本信息')">商标基本信息</a></div></div>
+        <div class="ax-hm-item"><div class="ax-hm-head"><span class="ico" data-glyph="▤"></span>经营信息<span class="ax-caret">›</span></div><div class="ax-hm-sub"><a onclick="demoOnly('纳税信用评级')">纳税信用评级</a><span class="sep">|</span><a onclick="demoOnly('招投标列表')">招投标列表</a></div></div>
+        <div class="ax-hm-more" onclick="demoOnly('查看全部接口')">查看全部接口 ›</div>
+      </div>
+
+      <!-- 主文案 -->
+      <div class="ax-hero-copy">
+        <h1 class="ax-hero-title"><span class="eyebrow-inline">开发者首选</span> <span class="hl">稳定高效的API解决方案</span></h1>
+        <ul class="ax-hero-points">
+          <li>安全稳定，助力数字化转型</li>
+          <li>数据多维，驱动业务增长</li>
+          <li>智能高效，提升开发效率</li>
+        </ul>
+        <button class="ax-hero-btn" onclick="goto('#core')">了解更多</button>
+        <div class="ax-dots"><div class="ax-dot on" onclick="goSlide(0)"></div><div class="ax-dot" onclick="goSlide(1)"></div></div>
+      </div>
+    </div>
+
+    <!-- 右侧接口响应示意（两屏共用 · 固定位置，不随轮播跳动） -->
+    <div class="ax-hero-visual" aria-hidden="true">
+      <div class="ax-vterm">
+        <div class="ax-vterm-bar"><i></i><i></i><i></i><span>api.datadowell.com</span></div>
+        <div class="ax-vterm-body">
+          <div class="ax-vreq"><em>GET</em>/v3/enterprise/base</div>
+<pre>{
+  <span class="k">"企业名称"</span>: <span class="v">"某某科技有限公司"</span>,
+  <span class="k">"统一社会信用代码"</span>: <span class="v">"91110108MA01..."</span>,
+  <span class="k">"经营状态"</span>: <span class="v">"存续"</span>,
+  <span class="k">"注册资本"</span>: <span class="v">"5000万元"</span>
+}</pre>
+        </div>
+        <div class="ax-vterm-foot"><span class="ok">● 200 OK</span><span>32ms</span><span>99.99% SLA</span></div>
+      </div>
+      <div class="ax-vbadge ax-vbadge-1">3.8亿+ 企业实体</div>
+      <div class="ax-vbadge ax-vbadge-2">毫秒级响应</div>
+    </div>
+
+    <!-- 右侧悬浮工具栏 -->
+    <div class="ax-float">
+      <div class="try" onclick="openModal('loginModal')"><i style="--g:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7S9 2 6.5 4 8 7 12 7s3-3 5.5-1S12 7 12 7z%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E')"></i>免费试用</div>
+      <div onclick="demoOnly('在线咨询')"><i style="--g:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E')"></i>在线咨询</div>
+      <div onclick="demoOnly('联系微信')"><i style="--g:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%229%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22/%3E%3Cpath d=%22M8 12h8M12 8v8%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22/%3E%3C/svg%3E')"></i>联系微信</div>
+      <div class="totop" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i style="--g:url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22%3E%3Cpath d=%22M12 19V5M5 12l7-7 7 7%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E')"></i>回顶部</div>
+    </div>
+  </section>
+
+  <!-- ===== 数据规模卡 ===== -->
+  <section class="ax-stats">
+    <div class="ax-inner ax-stats-in">
+      <div class="ax-stat-card" data-reveal><div><div class="ax-stat-label">企业实体</div><div class="ax-stat-num" data-count="3.8" data-dec="1">3.8<small>亿+</small></div></div><span class="ax-stat-ico ico" data-glyph="▦"></span></div>
+      <div class="ax-stat-card" data-reveal style="transition-delay:.08s"><div><div class="ax-stat-label">司法诉讼</div><div class="ax-stat-num" data-count="3.6" data-dec="1">3.6<small>亿+</small></div></div><span class="ax-stat-ico ico" data-glyph="⚖"></span></div>
+      <div class="ax-stat-card" data-reveal style="transition-delay:.16s"><div><div class="ax-stat-label">知识产权</div><div class="ax-stat-num" data-count="1.1" data-dec="1">1.1<small>亿+</small></div></div><span class="ax-stat-ico ico" data-glyph="◎"></span></div>
+      <div class="ax-stat-card" data-reveal style="transition-delay:.24s"><div><div class="ax-stat-label">经营风险</div><div class="ax-stat-num" data-count="4.0" data-dec="1">4.0<small>亿+</small></div></div><span class="ax-stat-ico ico" data-glyph="⚠"></span></div>
+    </div>
+  </section>
+
+  <!-- ===== 核心主张 ===== -->
+  <section class="ax-core" id="core" data-reveal>
+    <div class="ax-core-title">数据<em>全</em>、信息<em>准</em>、调用<em>稳</em>、响应<em>快</em></div>
+    <div class="ax-core-sub">依托全域多态数据资源，构建高并发、弹性可扩展且安全合规的数据API服务，支撑全行业场景化需求。</div>
+  </section>
+
+  <!-- ===== 字段预览（类目 Tab） ===== -->
+  <section class="ax-fields">
+    <div class="ax-inner ax-fields-in">
+      <div class="ax-tab-nav" data-reveal>
+        <div class="ax-tab-btn on" onclick="switchTab(this,'fld-gs')"><span class="ico" data-glyph="▦"></span>工商信息</div>
+        <div class="ax-tab-btn" onclick="switchTab(this,'fld-sf')"><span class="ico" data-glyph="⚖"></span>司法诉讼</div>
+        <div class="ax-tab-btn" onclick="switchTab(this,'fld-rx')"><span class="ico" data-glyph="⚠"></span>经营风险</div>
+        <div class="ax-tab-btn" onclick="switchTab(this,'fld-ip')"><span class="ico" data-glyph="◎"></span>知识产权</div>
+      </div>
+      <div class="ax-tab-panel on" id="fld-gs">
+        <div class="ax-fcard"><div class="ax-fcard-h">企业工商信息<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">工商名称</span><span class="ax-fchip">法定代表人名称</span><span class="ax-fchip">统一社会信用代码</span><span class="ax-fchip">经营状态名称</span><span class="ax-fchip">注册资金(万元)</span><span class="ax-fchip">经营范围</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">股东信息<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">股东名称</span><span class="ax-fchip">实缴金额</span><span class="ax-fchip">出资比例</span><span class="ax-fchip">认缴金额</span><span class="ax-fchip">出资方式</span><span class="ax-fchip">出资人类型</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">分支机构<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">机构名称</span><span class="ax-fchip">负责人名称</span><span class="ax-fchip">统一社会信用代码</span><span class="ax-fchip">企业状态</span><span class="ax-fchip">机构地址</span><span class="ax-fchip">成立日期</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">企业对外投资<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">企业名称</span><span class="ax-fchip">出资方式</span><span class="ax-fchip">出资日期</span><span class="ax-fchip">认缴金额</span><span class="ax-fchip">企业状态</span><span class="ax-fchip">企业类型</span></div></div>
+      </div>
+      <div class="ax-tab-panel" id="fld-sf">
+        <div class="ax-fcard"><div class="ax-fcard-h">裁判文书<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">案号</span><span class="ax-fchip">案由</span><span class="ax-fchip">标题</span><span class="ax-fchip">案件类型</span><span class="ax-fchip">裁定日期</span><span class="ax-fchip">判决结果</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">开庭公告<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">案号</span><span class="ax-fchip">案由</span><span class="ax-fchip">开庭日期</span><span class="ax-fchip">法院名称</span><span class="ax-fchip">原告</span><span class="ax-fchip">被告</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">终本案件<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">案号</span><span class="ax-fchip">法院名称</span><span class="ax-fchip">终本时间</span><span class="ax-fchip">立案时间</span><span class="ax-fchip">执行标的</span><span class="ax-fchip">当事人</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">失信被执行人<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">案号</span><span class="ax-fchip">被执行人名称</span><span class="ax-fchip">立案时间</span><span class="ax-fchip">法院名称</span><span class="ax-fchip">行为具体情形</span><span class="ax-fchip">履行情况</span></div></div>
+      </div>
+      <div class="ax-tab-panel" id="fld-rx">
+        <div class="ax-fcard"><div class="ax-fcard-h">行政处罚<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">案发时间</span><span class="ax-fchip">案由</span><span class="ax-fchip">主要违法事实</span><span class="ax-fchip">处罚机关</span><span class="ax-fchip">处罚决定文书</span><span class="ax-fchip">处罚结果</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">经营异常<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">企业名称</span><span class="ax-fchip">列入日期</span><span class="ax-fchip">列入原因</span><span class="ax-fchip">移出日期</span><span class="ax-fchip">移出原因</span><span class="ax-fchip">列入决定机关</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">股权质押<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">出质人</span><span class="ax-fchip">质权人</span><span class="ax-fchip">质押金额</span><span class="ax-fchip">执行状态</span><span class="ax-fchip">质押备案日期</span><span class="ax-fchip">标的企业</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">严重违法<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">企业名称</span><span class="ax-fchip">列入日期</span><span class="ax-fchip">列入原因</span><span class="ax-fchip">移出日期</span><span class="ax-fchip">移出原因</span><span class="ax-fchip">列入决定机关</span></div></div>
+      </div>
+      <div class="ax-tab-panel" id="fld-ip">
+        <div class="ax-fcard"><div class="ax-fcard-h">专利基本信息<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">分类号</span><span class="ax-fchip">专利分类</span><span class="ax-fchip">专利标题</span><span class="ax-fchip">申请日期</span><span class="ax-fchip">主分类号</span><span class="ax-fchip">申请人名称</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">商标基本信息<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">商标分类</span><span class="ax-fchip">商标状态</span><span class="ax-fchip">商标名称</span><span class="ax-fchip">申请日期</span><span class="ax-fchip">代理机构</span><span class="ax-fchip">商标注册号</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">软件著作权<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">软件全称</span><span class="ax-fchip">软件简称</span><span class="ax-fchip">著作人</span><span class="ax-fchip">登记号</span><span class="ax-fchip">软著状态</span><span class="ax-fchip">分类号</span></div></div>
+        <div class="ax-fcard"><div class="ax-fcard-h">作品著作权<span class="arr">›</span></div><div class="ax-fcard-b"><span class="ax-fchip">作品名称</span><span class="ax-fchip">作品类别</span><span class="ax-fchip">登记日期</span><span class="ax-fchip">登记号</span><span class="ax-fchip">首次发表日期</span><span class="ax-fchip">创造完成日期</span></div></div>
+      </div>
+      <div class="ax-fields-more"><button class="ax-btn-blue" onclick="goto('#scenes')">更多API服务</button></div>
+    </div>
+  </section>
+
+  <!-- ===== 多领域覆盖（场景） ===== -->
+  <section class="ax-scenes" id="scenes">
+    <div class="ax-grid"></div>
+    <div class="ax-inner ax-scenes-in">
+      <div class="ax-sec-title" data-reveal>多<em>领域</em>覆盖，全<em>场景</em>赋能</div>
+      <div class="ax-sec-sub" data-reveal>聚焦业务场景驱动，融合多源业务数据，支持灵活配置，依托高效接口实现实时业务闭环</div>
+      <div class="ax-scene-wrap">
+        <div class="ax-scene-side" data-reveal>
+          <div class="ax-scene-item on" onclick="switchScene(this,'sc-jd')"><span class="ico" data-glyph="▥"></span>客户信息尽调</div>
+          <div class="ax-scene-item" onclick="switchScene(this,'sc-risk')"><span class="ico" data-glyph="◇"></span>企业风险监控</div>
+          <div class="ax-scene-item" onclick="switchScene(this,'sc-ip')"><span class="ico" data-glyph="◎"></span>知识产权管理</div>
+          <div class="ax-scene-item" onclick="switchScene(this,'sc-exec')"><span class="ico" data-glyph="◍"></span>董监高信息洞察</div>
+          <div class="spacer"></div>
+          <div class="more" onclick="demoOnly('查看更多接口')">查看更多接口</div>
+        </div>
+        <div class="ax-scene-main" data-reveal>
+          <!-- 客户信息尽调 -->
+          <div class="ax-scene-panel on" id="sc-jd">
+            <div class="ax-scene-intro"><h3>客户信息尽调</h3><p>高效地收集、整理和分析目标企业的相关信息，降低调查成本，提高调查效率。</p><button class="vbtn" onclick="demoOnly('查看全部接口')">查看全部接口</button></div>
+            <div class="ax-api-grid">
+              <div class="ax-api-card"><div class="ax-ac-name">企业工商信息</div><div class="ax-ac-fields"><span class="ax-ac-field">工商名称</span><span class="ax-ac-field">法定代表人名称</span><span class="ax-ac-field">统一社会信用代码</span><span class="ax-ac-field">经营状态名称</span><span class="ax-ac-field">注册资金（万元）</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.15</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 企业工商信息')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">变更记录</div><div class="ax-ac-fields"><span class="ax-ac-field">变更总数</span><span class="ax-ac-field">变更日期</span><span class="ax-ac-field">变更事项</span><span class="ax-ac-field">变更前内容</span><span class="ax-ac-field">变更后内容</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.10</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 变更记录')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">股东信息</div><div class="ax-ac-fields"><span class="ax-ac-field">股东名称</span><span class="ax-ac-field">出资日期</span><span class="ax-ac-field">持股比例</span><span class="ax-ac-field">认缴出资额</span><span class="ax-ac-field">出资方式</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.10</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 股东信息')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">分支机构</div><div class="ax-ac-fields"><span class="ax-ac-field">机构名称</span><span class="ax-ac-field">机构负责人</span><span class="ax-ac-field">统一社会信用代码</span><span class="ax-ac-field">企业状态</span><span class="ax-ac-field">机构地址</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.10</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 分支机构')">申请接口 »</span></div></div>
+            </div>
+          </div>
+          <!-- 企业风险监控 -->
+          <div class="ax-scene-panel" id="sc-risk">
+            <div class="ax-scene-intro"><h3>企业风险监控</h3><p>利用司法诉讼和经营风险数据，为金融机构、保险公司和投资者提供风险评估服务，定期监测风险变化。</p><button class="vbtn" onclick="demoOnly('查看全部接口')">查看全部接口</button></div>
+            <div class="ax-api-grid">
+              <div class="ax-api-card"><div class="ax-ac-name">裁判文书</div><div class="ax-ac-fields"><span class="ax-ac-field">案号</span><span class="ax-ac-field">裁定日期</span><span class="ax-ac-field">标题</span><span class="ax-ac-field">案件状态</span><span class="ax-ac-field">法院名称</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.12</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 裁判文书')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">开庭公告</div><div class="ax-ac-fields"><span class="ax-ac-field">公告日期</span><span class="ax-ac-field">当事人</span><span class="ax-ac-field">案由</span><span class="ax-ac-field">案号</span><span class="ax-ac-field">法院名称</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.12</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 开庭公告')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">终本案件</div><div class="ax-ac-fields"><span class="ax-ac-field">案号</span><span class="ax-ac-field">终本时间</span><span class="ax-ac-field">当事人</span><span class="ax-ac-field">执行标的</span><span class="ax-ac-field">未履行金额</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.10</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 终本案件')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">行政处罚</div><div class="ax-ac-fields"><span class="ax-ac-field">处罚金额</span><span class="ax-ac-field">处罚依据</span><span class="ax-ac-field">主要违法事实</span><span class="ax-ac-field">处罚结果</span><span class="ax-ac-field">处罚决定文书</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.12</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 行政处罚')">申请接口 »</span></div></div>
+            </div>
+          </div>
+          <!-- 知识产权管理 -->
+          <div class="ax-scene-panel" id="sc-ip">
+            <div class="ax-scene-intro"><h3>知识产权管理</h3><p>包括专利、商标和软著等数据，可以帮助客户保护知识产权、监测竞争对手的知识产权动态，以及评估自身知识产权的价值和风险。</p><button class="vbtn" onclick="demoOnly('查看全部接口')">查看全部接口</button></div>
+            <div class="ax-api-grid">
+              <div class="ax-api-card"><div class="ax-ac-name">专利基本信息</div><div class="ax-ac-fields"><span class="ax-ac-field">分类号</span><span class="ax-ac-field">专利分类</span><span class="ax-ac-field">专利标题</span><span class="ax-ac-field">申请日期</span><span class="ax-ac-field">主分类号</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.10</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 专利基本信息')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">商标基本信息</div><div class="ax-ac-fields"><span class="ax-ac-field">商标分类</span><span class="ax-ac-field">商标状态</span><span class="ax-ac-field">商标名称</span><span class="ax-ac-field">申请日期</span><span class="ax-ac-field">代理机构</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.10</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 商标基本信息')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">软件著作权</div><div class="ax-ac-fields"><span class="ax-ac-field">软件全称</span><span class="ax-ac-field">软件简称</span><span class="ax-ac-field">著作权人</span><span class="ax-ac-field">登记号</span><span class="ax-ac-field">软著状态</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.10</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 软件著作权')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">作品著作权</div><div class="ax-ac-fields"><span class="ax-ac-field">登记日期</span><span class="ax-ac-field">登记号</span><span class="ax-ac-field">作品名称</span><span class="ax-ac-field">作品类别</span><span class="ax-ac-field">首次发表日期</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.10</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 作品著作权')">申请接口 »</span></div></div>
+            </div>
+          </div>
+          <!-- 董监高信息洞察 -->
+          <div class="ax-scene-panel" id="sc-exec">
+            <div class="ax-scene-intro"><h3>董监高信息洞察</h3><p>提供高管信息深度分析服务，一键访问企业核心管理人员的任职情况、投资活动、高管职位以及相关联企业的潜在风险等关键信息。</p><button class="vbtn" onclick="demoOnly('查看全部接口')">查看全部接口</button></div>
+            <div class="ax-api-grid">
+              <div class="ax-api-card"><div class="ax-ac-name">限制高消费</div><div class="ax-ac-fields"><span class="ax-ac-field">案号</span><span class="ax-ac-field">案由</span><span class="ax-ac-field">关联对象</span><span class="ax-ac-field">限制令对象</span><span class="ax-ac-field">发布时间</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.06</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 限制高消费')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">人员关联企业</div><div class="ax-ac-fields"><span class="ax-ac-field">关联企业</span><span class="ax-ac-field">关系类型</span><span class="ax-ac-field">法定代表人名称</span><span class="ax-ac-field">企业基本信息</span><span class="ax-ac-field">行政处罚信息</span></div><div class="ax-ac-foot"><div class="ax-ac-price na">¥<b>面议</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('一键询价 · 人员关联企业')">一键询价 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">实际控制人</div><div class="ax-ac-fields"><span class="ax-ac-field">股东主键</span><span class="ax-ac-field">实控人名称</span><span class="ax-ac-field">股权比例</span><span class="ax-ac-field">表决权比例</span><span class="ax-ac-field">最终受益股份</span></div><div class="ax-ac-foot"><div class="ax-ac-price">¥<b>0.80</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('申请接口 · 实际控制人')">申请接口 »</span></div></div>
+              <div class="ax-api-card"><div class="ax-ac-name">受益所有人</div><div class="ax-ac-fields"><span class="ax-ac-field">企业名称</span><span class="ax-ac-field">受益类型</span><span class="ax-ac-field">任职名称</span><span class="ax-ac-field">持股比例</span><span class="ax-ac-field">出资方式</span></div><div class="ax-ac-foot"><div class="ax-ac-price na">¥<b>面议</b>/次</div><span class="ax-ac-btn" onclick="demoOnly('一键询价 · 受益所有人')">一键询价 »</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 为什么选择我们 ===== -->
+  <section class="ax-why">
+    <div class="ax-inner ax-why-in">
+      <div class="ax-sec-title" data-reveal>为什么选择我们</div>
+      <div class="ax-sec-sub" data-reveal>多维数据，个性化定制组合，提供全周期服务，全方位高性能数据API调用</div>
+      <div class="ax-why-grid">
+        <div class="ax-why-card" data-reveal><div class="ax-why-idx">01</div><div class="ax-why-name">成本低</div><div class="ax-why-desc">降本增效，开发运维投入锐减，获取数据成本更低</div></div>
+        <div class="ax-why-card" data-reveal style="transition-delay:.08s"><div class="ax-why-idx">02</div><div class="ax-why-name">效率高</div><div class="ax-why-desc">多维数据一键触达，运营优化决策加速，快人一步赢先机</div></div>
+        <div class="ax-why-card" data-reveal style="transition-delay:.16s"><div class="ax-why-idx">03</div><div class="ax-why-name">集成易</div><div class="ax-why-desc">标准接口即接即用，无缝集成现有系统，部署效率大幅提升</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 数据服务对接流程 ===== -->
+  <section class="ax-flow">
+    <div class="ax-inner ax-flow-in">
+      <div class="ax-sec-title" data-reveal>数据服务<em>对接流程</em></div>
+      <div class="ax-flow-steps">
+        <div class="ax-flow-step" data-reveal><div class="ax-flow-ico" data-glyph="◈"></div><div class="ax-flow-t">第一步 · 注册账号</div><div class="ax-flow-d">注册开放平台账号或联系客服代为注册</div></div>
+        <div class="ax-flow-arrow">▸</div>
+        <div class="ax-flow-step" data-reveal style="transition-delay:.1s"><div class="ax-flow-ico" data-glyph="◇"></div><div class="ax-flow-t">第二步 · 对接客服</div><div class="ax-flow-d">对接五度易链专属客服提供资料认证</div></div>
+        <div class="ax-flow-arrow">▸</div>
+        <div class="ax-flow-step" data-reveal style="transition-delay:.2s"><div class="ax-flow-ico" data-glyph="◆"></div><div class="ax-flow-t">第三步 · 开通服务</div><div class="ax-flow-d">联系客服申请开通接口服务</div></div>
+        <div class="ax-flow-arrow">▸</div>
+        <div class="ax-flow-step" data-reveal style="transition-delay:.3s"><div class="ax-flow-ico" data-glyph="⬢"></div><div class="ax-flow-t">第四步 · 接入协作</div><div class="ax-flow-d">在线测试接口，将接口接入对接业务平台</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 定价与计费 ===== -->
+  <section class="ax-pricing">
+    <div class="ax-inner ax-pricing-in">
+      <div class="ax-sec-title" data-reveal>定价与计费</div>
+      <div class="ax-price-cards">
+        <div class="ax-price-box dark" data-reveal><div class="ax-pb-name">包年计费</div><div class="ax-pb-desc">采用订阅年费模式调用API，这种服务模式适用于持续高频需求场景，且该方式可以降低总体成本并免除对账负担。</div><div class="ax-pb-link" onclick="demoOnly('获取报价 · 包年计费')">获取报价 »</div></div>
+        <div class="ax-price-box light" data-reveal style="transition-delay:.08s"><div class="ax-pb-name">按次计费</div><div class="ax-pb-desc">根据API实际调用次数实时结算，这种计费方式适用于业务波动较大的场景，且该方式具有成本可控性和资源弹性优势。</div><div class="ax-pb-link" onclick="demoOnly('获取报价 · 按次计费')">获取报价 »</div></div>
+      </div>
+      <div class="ax-guarantee" data-reveal>
+        <span><em>全时段</em>技术咨询</span><span><em>全周期</em>技术支持</span><span><em>全场景</em>数据测试</span><span><em>全范围</em>售后服务</span>
+      </div>
+      <div class="ax-price-cta" data-reveal>
+        <div class="num">联系我们 · <b>010-68321050</b></div>
+        <button onclick="demoOnly('立即咨询')">立即咨询</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 页脚 ===== -->
+  <footer class="ax-footer">
+    <div class="ax-grid"></div>
+    <div class="ax-inner ax-footer-in">
+      <div class="ax-footer-top">
+        <div>
+          <div class="ax-fbrand"><div class="ax-flogo">5E</div><div class="ax-fbname">5度易链<small>5 DEGREE EASY CHAIN</small></div></div>
+          <div class="ax-fhours">周一至周五（09:00 - 18:00）</div>
+        </div>
+        <div class="ax-finfo">
+          <p>公司地址：北京市丰台区丽泽路16号院3号楼9层</p>
+          <p>客服电话：18510899258&nbsp;&nbsp;010-68321050</p>
+          <p>市场合作：<a href="mailto:info@datadowell.com">info@datadowell.com</a></p>
+        </div>
+        <div class="ax-fright">
+          <p>Copyright © 北京笃威尔数字技术有限公司 | 五度易链</p>
+          <p>京ICP备2021019355号-4&nbsp;&nbsp;京公网安备11010602201153</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ===== 登录/注册弹窗 ===== -->
+<div class="wd-overlay" id="loginModal" onclick="if(event.target===this)closeModal('loginModal')">
+  <div class="wd-modal">
+    <span class="wd-close" onclick="closeModal('loginModal')">✕</span>
+    <div class="wd-modal-title">登录 / 注册</div>
+    <div class="lg-tabs">
+      <div class="lg-tab active" onclick="switchLoginTab(this,'loginSms')">短信登录</div>
+      <div class="lg-tab" onclick="switchLoginTab(this,'loginPwd')">账号密码</div>
+    </div>
+    <div id="loginSms">
+      <div class="lg-field"><input placeholder="手机号"></div>
+      <div class="lg-field lg-code-row"><input placeholder="验证码"><button class="lg-code-btn" onclick="showToast('验证码已发送（演示）')">获取验证码</button></div>
+    </div>
+    <div id="loginPwd" style="display:none;">
+      <div class="lg-field"><input placeholder="账号 / 手机号"></div>
+      <div class="lg-field"><input type="password" placeholder="密码"></div>
+    </div>
+    <button class="lg-submit" onclick="doLogin()">登录 / 注册</button>
+    <div class="lg-tip">登录即代表同意《服务协议》与《隐私政策》</div>
+  </div>
+</div>
+
+<div class="wd-toast" id="toast"></div>
+
+<script>
+/* Hero 轮播文案切换（演示） */
+var slides=[
+  {eb:'开发者首选',hl:'稳定高效的API解决方案',pts:['安全稳定，助力数字化转型','数据多维，驱动业务增长','智能高效，提升开发效率'],cta:'了解更多'},
+  {eb:'行业智库',hl:'精准赋能 · 全维度离线数据库定制',pts:['全维度数据，企业画像多维穿透','按需定制，精准匹配专属数据资产','安全合规，敏感信息0泄漏','企业级服务，全生命周期护航'],cta:'联系我们'}
+];
+function goSlide(n){
+  var s=slides[n], c=document.querySelector('.ax-hero-copy');
+  c.querySelector('.eyebrow-inline').textContent=s.eb;
+  c.querySelector('.ax-hero-title .hl').textContent=s.hl;
+  var ul=c.querySelector('.ax-hero-points');
+  ul.innerHTML=s.pts.map(function(p){return '<li>'+p+'</li>';}).join('');
+  c.querySelector('.ax-hero-btn').textContent=s.cta;
+  document.querySelectorAll('.ax-dot').forEach(function(d,i){ d.classList.toggle('on', i===n); });
+}
+var _sl=0; setInterval(function(){ goSlide((_sl+=1)%2); },6500);
+
+/* 字段预览 Tab */
+function switchTab(btn, panel){
+  btn.parentNode.querySelectorAll('.ax-tab-btn').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  document.querySelectorAll('.ax-tab-panel').forEach(function(p){ p.classList.remove('on'); });
+  document.getElementById(panel).classList.add('on');
+}
+/* 场景切换 */
+function switchScene(btn, panel){
+  btn.parentNode.querySelectorAll('.ax-scene-item').forEach(function(b){ b.classList.remove('on'); });
+  btn.classList.add('on');
+  document.querySelectorAll('.ax-scene-panel').forEach(function(p){ p.classList.remove('on'); });
+  document.getElementById(panel).classList.add('on');
+}
+/* 账户区（演示：登录态切换） */
+function toggleAcct(){ showToast('演示：账户菜单（充值中心 / 我的接口 / 退出登录）'); }
+function doLogin(){ closeModal('loginModal'); showToast('登录成功（演示）'); }
+/* 弹窗 */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function switchLoginTab(el, panel){
+  el.parentNode.querySelectorAll('.lg-tab').forEach(function(t){ t.classList.remove('active'); });
+  el.classList.add('active');
+  document.getElementById('loginSms').style.display=(panel==='loginSms')?'':'none';
+  document.getElementById('loginPwd').style.display=(panel==='loginPwd')?'':'none';
+}
+/* 锚点 */
+function goto(sel){ var el=document.querySelector(sel); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); }
+/* toast */
+function demoOnly(name){ showToast('原型演示：'+name); }
+var _tt;
+function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.style.display='block'; t.style.transform='translateX(-50%) translateY(0)'; t.style.opacity='1'; clearTimeout(_tt); _tt=setTimeout(function(){ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(10px)'; setTimeout(function(){t.style.display='none';},260); },1900); }
+
+/* 右侧工具条：滚动离开顶部后显示"回顶部" */
+(function(){
+  var fl=document.querySelector('.ax-float'); if(!fl) return;
+  function onScroll(){ if(window.scrollY>260) fl.classList.add('show-top'); else fl.classList.remove('show-top'); }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+})();
+
+/* 滚动进场揭示 */
+(function(){
+  var els=document.querySelectorAll('[data-reveal]');
+  if(!('IntersectionObserver' in window)){ els.forEach(function(e){e.classList.add('in');}); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+  },{threshold:.14,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(e){ io.observe(e); });
+})();
+
+/* 数字滚动 */
+(function(){
+  function run(el){
+    var target=parseFloat(el.getAttribute('data-count')), dec=parseInt(el.getAttribute('data-dec')||'0',10);
+    var suffix=el.querySelector('small')?el.querySelector('small').outerHTML:'';
+    var dur=1200, t0=performance.now();
+    function tick(now){
+      var p=Math.min((now-t0)/dur,1), e=1-Math.pow(1-p,3), v=(target*e).toFixed(dec);
+      el.innerHTML=v+suffix;
+      if(p<1) requestAnimationFrame(tick); else el.innerHTML=target.toFixed(dec)+suffix;
+    }
+    requestAnimationFrame(tick);
+  }
+  var nums=document.querySelectorAll('[data-count]');
+  if(!('IntersectionObserver' in window)){ nums.forEach(run); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ run(en.target); io.unobserve(en.target); } });
+  },{threshold:.5});
+  nums.forEach(function(n){ io.observe(n); });
+})();
+</script>
+</body>
+</html>

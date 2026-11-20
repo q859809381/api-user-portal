@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>个人中心 - 五度易链 API开放平台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ===== 与首页一致的设计变量 ===== */
+@keyframes fadeUp{to{opacity:1;transform:none;}}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+:root{
+  --paper:#ffffff; --bg:#f4f6fb; --bg2:#f7f9fc;
+  --ink:#0f1b2d; --ink2:#3a4a63; --muted:#64748b; --faint:#94a3b8;
+  --line:#e6eaf3; --line2:#eef1f8;
+  --brand:#2563eb; --brand-d:#1e40af; --accent:#0d9488;
+  --brand-grad:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
+  --success:#059669; --success-bg:#ecfdf5; --success-line:#a7f3d0;
+  --danger:#dc2626; --danger-bg:#fef2f2; --danger-line:#fecaca;
+  --warn:#d97706; --warn-bg:#fffbeb; --warn-line:#fde68a;
+  --glow:rgba(37,99,235,.14);
+  --shadow-sm:0 1px 2px rgba(15,27,45,.04),0 6px 16px rgba(15,27,45,.05);
+  --shadow-md:0 8px 28px rgba(15,27,45,.08),0 20px 48px rgba(15,27,45,.07);
+  --shadow-lg:0 30px 80px rgba(15,27,45,.16);
+  --fd:'Sora','Noto Sans SC',sans-serif;
+  --fb:'IBM Plex Sans','Noto Sans SC',sans-serif;
+  --fm:'JetBrains Mono','IBM Plex Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);font-family:var(--fb);color:var(--ink);-webkit-font-smoothing:antialiased;min-width:1024px;}
+a{color:inherit;text-decoration:none;}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit;}
+input,textarea{font-family:inherit;}
+
+/* ===== 顶部导航（复用首页） ===== */
+.ax-topbar{position:fixed;top:0;left:0;right:0;height:66px;z-index:100;background:rgba(255,255,255,.92);backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line);}
+.ax-topbar-in{max-width:1440px;height:100%;margin:0 auto;padding:0 32px;display:flex;align-items:center;}
+.ax-brand{display:flex;align-items:center;gap:11px;}
+.ax-logo{width:38px;height:38px;border-radius:11px;background:var(--brand-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--fd);font-weight:800;font-size:15px;box-shadow:0 6px 16px var(--glow);}
+.ax-bname{font-family:var(--fd);font-size:19px;font-weight:800;letter-spacing:.2px;line-height:1;color:var(--ink);}
+.ax-bname small{display:block;font-family:var(--fm);font-size:8px;font-weight:500;color:var(--faint);letter-spacing:1.5px;margin-top:3px;}
+.ax-bdiv{width:1px;height:26px;background:var(--line);margin:0 14px;}
+.ax-bname2{font-size:15px;font-weight:600;color:var(--ink2);}
+.ax-hnav{margin-left:auto;display:flex;align-items:center;gap:22px;}
+.ax-hnav a{font-size:14px;font-weight:500;color:var(--ink2);cursor:pointer;transition:color .2s;}
+.ax-hnav a:hover{color:var(--brand);}
+.ax-caret{font-size:10px;color:var(--faint);margin-left:4px;}
+.ax-pill{display:inline-flex;align-items:center;gap:7px;padding:7px 15px;border:1px solid #d9e0ee;border-radius:20px;background:#fff;color:var(--ink2);font-size:13px;font-weight:500;cursor:pointer;transition:.2s;}
+.ax-pill::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--brand);}
+.ax-pill:hover{border-color:var(--brand);color:var(--brand);}
+.ax-bell{position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:var(--ink2);cursor:pointer;}
+.ax-bell svg{width:19px;height:19px;}
+.ax-bell .dot{position:absolute;top:-2px;right:-3px;min-width:16px;height:16px;border-radius:8px;background:var(--brand);color:#fff;font-family:var(--fm);font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;box-shadow:0 0 0 2px #fff;}
+.ax-acct{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;background:var(--brand-grad);color:#fff;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:0 6px 16px var(--glow);transition:.2s;}
+.ax-acct:hover{filter:brightness(1.06);}
+
+/* ===== 页面主体布局 ===== */
+.pc-wrap{max-width:1440px;margin:0 auto;padding:66px 32px 60px;display:flex;gap:22px;align-items:flex-start;}
+
+/* 左侧栏 */
+.pc-side{width:232px;flex-shrink:0;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);overflow:hidden;position:sticky;top:88px;}
+.pc-user{padding:22px 18px 18px;text-align:center;border-bottom:1px solid var(--line2);}
+.pc-avatar{width:56px;height:56px;border-radius:50%;background:#eef1f6;color:#9aa6be;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;}
+.pc-user-name{font-size:14px;font-weight:700;color:var(--ink);}
+.pc-charge{margin-top:10px;display:inline-flex;align-items:center;gap:5px;padding:6px 18px;background:linear-gradient(135deg,#f59e0b,#ea8a04);color:#fff;border-radius:7px;font-size:12px;font-weight:600;box-shadow:0 4px 12px rgba(245,158,11,.24);}
+.pc-charge:hover{filter:brightness(1.05);}
+.pc-menu{padding:8px 0;}
+.pc-mi{display:flex;align-items:center;gap:10px;padding:11px 18px;font-size:14px;font-weight:500;color:var(--ink2);cursor:pointer;transition:.15s;}
+.pc-mi:hover{background:var(--bg2);color:var(--brand);}
+.pc-mi .mi-ico{width:17px;height:17px;flex-shrink:0;color:var(--muted);}
+.pc-mi .mi-caret{margin-left:auto;font-size:12px;color:var(--faint);transition:transform .2s;}
+.pc-mi.open .mi-caret{transform:rotate(180deg);}
+.pc-mi.group-active{color:var(--brand);font-weight:600;}
+.pc-mi.group-active .mi-ico{color:var(--brand);}
+.pc-sub{background:#fafcff;padding:2px 0 6px;}
+.pc-si{display:flex;align-items:center;gap:9px;padding:9px 18px 9px 45px;font-size:13px;color:var(--muted);cursor:pointer;position:relative;transition:.15s;}
+.pc-si:hover{color:var(--brand);}
+.pc-si.active{color:var(--brand);font-weight:600;background:#eef4ff;}
+.pc-si.active::before{content:'';position:absolute;left:32px;top:50%;transform:translateY(-50%);width:3px;height:15px;border-radius:2px;background:var(--brand);}
+
+/* 右侧内容 */
+.pc-main{flex:1;min-width:0;padding-top:22px;}
+.pc-panel{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow-sm);padding:26px 28px 40px;min-height:560px;}
+.pc-title{font-family:var(--fd);font-size:18px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:10px;padding-bottom:18px;border-bottom:1px solid var(--line2);margin-bottom:22px;}
+.pc-title::before{content:'';width:4px;height:18px;border-radius:3px;background:var(--brand);}
+
+/* 账号设置项 */
+.set-row{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:16px 18px;margin-bottom:14px;transition:.2s;}
+.set-row:hover{border-color:#d5e0f5;background:#f5f8fe;}
+.set-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#e8f0fe;color:var(--brand);}
+.set-ico svg{width:17px;height:17px;}
+.set-info{flex:1;min-width:0;}
+.set-name{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.set-name .val{color:var(--ink2);font-weight:600;}
+.set-name .unbind{color:var(--danger);font-size:12px;font-weight:600;}
+.set-desc{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6;}
+.set-act{font-size:13px;font-weight:600;color:var(--brand);display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;}
+.set-act:hover{color:var(--accent);}
+.set-act svg{width:14px;height:14px;}
+
+/* ===== 企业认证 ===== */
+/* 状态：未认证 */
+.cert-page{padding-top:2px;}
+.cert-lead{font-size:13px;color:var(--muted);line-height:1.8;margin:0 0 20px;}
+/* 企业认证权益对比 */
+.cert-benefits{margin:0 0 24px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;text-align:left;}
+.cb-head{padding:13px 18px;background:linear-gradient(135deg,#f5f9ff,#eef4ff);border-bottom:1px solid var(--line2);}
+.cb-title{font-family:var(--fd);font-size:14px;font-weight:800;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.cb-title::before{content:'';width:3px;height:14px;border-radius:2px;background:var(--brand);}
+.cb-sub{font-size:11px;color:var(--muted);margin-top:5px;padding-left:11px;}
+.cb-row{display:grid;grid-template-columns:1.3fr 1fr 1fr;align-items:center;}
+.cb-row+.cb-row{border-top:1px solid var(--line2);}
+.cb-cell{padding:11px 18px;font-size:12px;color:var(--ink2);}
+.cb-thead{background:var(--bg2);}
+.cb-thead .cb-cell{font-size:11px;font-weight:700;color:var(--muted);padding-top:9px;padding-bottom:9px;}
+.cb-cell.cb-label{font-weight:600;color:var(--ink);}
+.cb-cell.cb-ent{background:#f0f6ff;text-align:center;}
+.cb-thead .cb-cell.cb-ent{color:var(--brand);}
+.cb-badge{font-size:9px;font-weight:700;color:#fff;background:var(--brand);border-radius:8px;padding:1px 6px;margin-left:4px;vertical-align:middle;}
+.cb-cell.cb-normal{text-align:center;color:var(--muted);}
+.cb-cell.cb-hl{font-family:var(--fd);font-size:14px;font-weight:800;color:var(--brand);text-align:center;}
+.cert-status{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:14px;}
+.cert-status.none{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-line);}
+.cert-status.none::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--warn);}
+.dropzone{border:1.5px dashed #c3d2ed;border-radius:14px;background:#f9fbff;padding:38px 24px;text-align:center;cursor:pointer;transition:.2s;}
+.dropzone:hover,.dropzone.drag{border-color:var(--brand);background:#f2f7ff;}
+.dropzone .up-ico{width:46px;height:46px;border-radius:14px;background:#e8f0fe;color:var(--brand);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.dropzone .up-ico svg{width:24px;height:24px;}
+.dropzone .up-t{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.dropzone .up-s{font-size:12px;color:var(--muted);line-height:1.7;}
+.dropzone .up-s em{font-style:normal;color:var(--brand);font-weight:600;}
+.cert-note{margin-top:18px;display:flex;align-items:flex-start;gap:8px;text-align:left;background:var(--bg2);border:1px solid var(--line2);border-radius:9px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.7;}
+.cert-note svg{width:15px;height:15px;flex-shrink:0;color:var(--brand);margin-top:2px;}
+.cert-demo-link{margin-top:14px;font-size:12px;color:var(--brand);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+/* 当前认证状态 */
+.cert-history{background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:14px 16px;margin-bottom:20px;text-align:left;}
+.ch-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.ch-title{font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.ch-title::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--brand);}
+.ch-detail{margin-left:auto;font-size:12px;color:var(--brand);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+.ch-detail:hover{color:var(--accent);}
+.ch-badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;}
+.ch-badge.fail{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-line);}
+.ch-badge.ok{background:var(--success-bg);color:var(--success);border:1px solid var(--success-line);}
+.ch-badge.wait{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-line);}
+.ch-badge.void{background:#f1f5f9;color:var(--muted);border:1px solid var(--line);}
+.ch-row{display:flex;padding:4px 0;font-size:12px;line-height:1.6;}
+.ch-k{width:78px;color:var(--muted);flex-shrink:0;}
+.ch-v{color:var(--ink2);}
+.ch-reason .ch-v{color:#b91c1c;flex:1;}
+
+/* 状态：识别中 / 审核中 */
+.cert-loading{text-align:center;padding:80px 20px;}
+.spinner{width:48px;height:48px;border-radius:50%;border:4px solid var(--line);border-top-color:var(--brand);animation:spin .9s linear infinite;margin:0 auto 20px;}
+.cert-loading h3{font-family:var(--fd);font-size:17px;font-weight:700;margin-bottom:8px;}
+.cert-loading p{font-size:13px;color:var(--muted);}
+.load-steps{display:flex;justify-content:center;gap:10px;margin-top:22px;}
+.load-step{font-size:12px;padding:5px 12px;border-radius:16px;background:var(--bg2);color:var(--faint);border:1px solid var(--line2);}
+.load-step.on{background:#e8f0fe;color:var(--brand);border-color:#cfe0fd;animation:pulse 1.2s infinite;}
+
+/* 状态：信息确认（可编辑） */
+.form-head{display:flex;align-items:flex-start;gap:12px;background:var(--success-bg);border:1px solid var(--success-line);border-radius:10px;padding:13px 16px;margin-bottom:22px;}
+.form-head .fh-ico{width:22px;height:22px;border-radius:50%;background:var(--success);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.form-head .fh-ico svg{width:13px;height:13px;}
+.form-head .fh-t{font-size:13px;font-weight:700;color:#047857;}
+.form-head .fh-d{font-size:12px;color:#059669;margin-top:3px;line-height:1.6;}
+.license-preview{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:12px 14px;margin-bottom:20px;}
+.license-thumb{width:76px;height:52px;border-radius:7px;background:linear-gradient(135deg,#dbeafe,#eff6ff);border:1px solid #cfe0fd;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--brand);overflow:hidden;cursor:pointer;position:relative;}
+.license-thumb svg{width:30px;height:30px;}
+.license-thumb img{width:100%;height:100%;object-fit:cover;display:none;position:absolute;inset:0;}
+.license-thumb::after{content:'预览';position:absolute;inset:0;background:rgba(15,27,45,.5);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+.license-thumb:hover::after{opacity:1;}
+.license-meta .lm-t{font-size:13px;font-weight:700;color:var(--ink);}
+.license-meta .lm-s{font-size:12px;color:var(--muted);margin-top:3px;}
+.license-acts{margin-left:auto;display:flex;align-items:center;gap:16px;}
+.license-view{font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border:1px solid var(--line);border-radius:7px;padding:5px 12px;background:#fff;}
+.license-view:hover{color:var(--brand);border-color:var(--brand);}
+.license-reup{font-size:12px;font-weight:600;color:var(--brand);cursor:pointer;}
+.license-reup:hover{color:var(--accent);}
+/* 营业执照预览弹窗 */
+.lic-lightbox{position:fixed;inset:0;background:rgba(15,27,45,.7);z-index:3000;display:none;align-items:center;justify-content:center;padding:40px;}
+.lic-lightbox.show{display:flex;}
+.lb-inner{background:#fff;border-radius:14px;box-shadow:var(--shadow-md);max-width:760px;width:100%;max-height:100%;display:flex;flex-direction:column;overflow:hidden;animation:fadeUp .25s ease both;}
+.lb-head{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line2);font-family:var(--fd);font-size:15px;font-weight:700;color:var(--ink);}
+.lb-close{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted);cursor:pointer;line-height:1;}
+.lb-close:hover{background:var(--bg2);color:var(--ink);}
+.lb-body{padding:22px;overflow-y:auto;display:flex;align-items:center;justify-content:center;background:var(--bg2);}
+.lb-body img{max-width:100%;max-height:70vh;object-fit:contain;border-radius:6px;box-shadow:0 6px 24px rgba(0,0,0,.12);}
+.lb-foot{padding:12px 22px;font-size:12px;color:var(--muted);text-align:center;border-top:1px solid var(--line2);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 20px;}
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg.full{grid-column:1/-1;}
+.fg label{font-size:12px;font-weight:600;color:var(--ink2);}
+.fg label .req{color:var(--danger);margin-left:2px;}
+.fg input,.fg textarea,.fg select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg2);font-size:13px;color:var(--ink);transition:.2s;resize:vertical;font-family:inherit;}
+.fg input:focus,.fg textarea:focus,.fg select:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px var(--glow);}
+.fg select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:34px;}
+.fg select:invalid{color:#aeb8c8;}
+.fg .auto-tag{font-size:10px;color:var(--accent);background:var(--success-bg);border:1px solid var(--success-line);border-radius:5px;padding:1px 6px;margin-left:6px;font-weight:600;}
+/* 应用场景二级级联 */
+.scene-picker{position:relative;}
+.scene-trigger{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg2);font-size:13px;color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:.2s;}
+.scene-trigger:hover{border-color:var(--brand);}
+.scene-trigger .ph{color:#aeb8c8;}
+.scene-trigger svg{width:15px;height:15px;color:var(--muted);flex-shrink:0;transition:transform .2s;transform:rotate(180deg);}
+.scene-picker.open .scene-trigger{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px var(--glow);}
+.scene-picker.open .scene-trigger svg{transform:rotate(0deg);}
+.scene-panel{position:absolute;bottom:calc(100% + 6px);left:0;right:0;z-index:20;display:flex;height:300px;background:#fff;border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.scene-col{flex:1;min-width:0;padding:8px 0;overflow-y:auto;height:100%;}
+.scene-col+.scene-col{border-left:1px solid var(--line2);background:#fafcff;}
+.scene-opt{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:11px 14px;font-size:14px;color:var(--ink2);cursor:pointer;line-height:1.4;}
+.scene-opt:hover{background:var(--bg2);color:var(--brand);}
+.scene-opt.active{color:var(--brand);font-weight:700;background:#eef4ff;}
+.scene-opt .caret{color:var(--faint);font-size:14px;flex-shrink:0;}
+.scene-empty{padding:16px 14px;font-size:14px;color:var(--faint);}
+/* 场景描述 */
+.scene-desc-box{position:relative;}
+.scene-desc-box textarea{padding-bottom:26px;}
+.scene-count{position:absolute;right:12px;bottom:9px;font-size:11px;color:var(--faint);pointer-events:none;}
+.form-divider{grid-column:1/-1;height:1px;background:var(--line2);margin:4px 0 2px;}
+.form-section-title{grid-column:1/-1;font-family:var(--fd);font-size:13px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.form-section-title::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--brand);}
+.form-section-title .section-tip{font-size:11px;font-weight:400;color:var(--muted);}
+.fg input::placeholder,.fg textarea::placeholder{color:#aeb8c8;}
+.form-actions{display:flex;align-items:center;gap:12px;margin-top:26px;padding-top:20px;border-top:1px solid var(--line2);}
+.btn-primary{padding:11px 26px;background:var(--brand-grad);color:#fff;border-radius:9px;font-size:14px;font-weight:700;box-shadow:0 8px 18px var(--glow);transition:.2s;}
+.btn-primary:hover{transform:translateY(-1px);}
+.btn-ghost{padding:11px 22px;border:1px solid var(--line);border-radius:9px;font-size:14px;font-weight:600;color:var(--ink2);transition:.2s;}
+.btn-ghost:hover{border-color:var(--brand);color:var(--brand);}
+.sim-switch{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);background:var(--bg2);border:1px solid var(--line2);border-radius:20px;padding:6px 12px;}
+.sim-switch b{color:var(--ink2);}
+.sim-switch .seg{display:flex;background:#e8edf6;border-radius:14px;padding:2px;}
+.sim-switch .seg span{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:.2s;}
+.sim-switch .seg span.on{background:#fff;color:var(--brand);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.sim-switch .seg span.on.fail{color:var(--danger);}
+
+/* 状态：审核结果 / 待审核 —— 上半部分为状态与过程，下半部分为认证内容 */
+.result-box{width:100%;margin:0;text-align:left;}
+.cert-status-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px 18px;margin-bottom:24px;}
+.status-head{display:flex;align-items:center;gap:14px;}
+.result-ico{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.result-ico svg{width:30px;height:30px;}
+.result-ico.ok{background:var(--success-bg);color:var(--success);border:2px solid var(--success-line);}
+.result-ico.no{background:var(--danger-bg);color:var(--danger);border:2px solid var(--danger-line);}
+.result-box h3{font-family:var(--fd);font-size:18px;font-weight:800;line-height:1.3;}
+.result-box h3.ok{color:var(--success);}
+.result-box h3.no{color:var(--danger);}
+.status-main{flex:1;min-width:0;}
+.result-box .r-sub{font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6;}
+.result-badge{display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;flex-shrink:0;align-self:flex-start;}
+.result-badge.ok{background:var(--success-bg);color:var(--success);border:1px solid var(--success-line);}
+.result-badge.no{background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-line);}
+.result-badge::before{content:'';width:8px;height:8px;border-radius:50%;background:currentColor;}
+.status-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-top:18px;padding-top:18px;border-top:1px solid var(--line2);}
+.meta-line{font-size:12px;color:var(--faint);margin-top:14px;text-align:center;}
+.meta-line.divided{border-top:1px solid var(--line2);margin-top:18px;padding-top:16px;}
+.meta-link{color:var(--brand);cursor:pointer;margin-left:14px;text-decoration:underline;text-underline-offset:3px;}
+.meta-link:hover{color:var(--accent);}
+/* 认证内容区块 */
+.cert-content-title{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px;margin:0 0 12px;}
+.cert-content-title::before{content:'';width:3px;height:14px;border-radius:2px;background:var(--brand);}
+.cert-content-title .section-tip{font-size:11px;font-weight:400;color:var(--muted);}
+.result-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:2px 20px;text-align:left;}
+.result-card .rc-row{display:flex;padding:12px 0;font-size:13px;border-bottom:1px dashed var(--line2);}
+.result-card .rc-row:last-child{border-bottom:none;}
+.result-card .rc-k{width:150px;color:var(--muted);flex-shrink:0;}
+.result-card .rc-v{color:var(--ink);font-weight:600;}
+.result-card .rc-v-wrap{font-weight:400;line-height:1.7;text-align:right;max-width:70%;word-break:break-all;}
+/* 结果页营业执照附件行 */
+.rc-attach{align-items:center;}
+.attach-cell{display:flex;align-items:center;gap:10px;}
+.attach-thumb{width:52px;height:36px;border-radius:5px;border:1px solid var(--line);background:linear-gradient(135deg,#dbeafe,#eff6ff);overflow:hidden;cursor:pointer;flex-shrink:0;}
+.attach-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.attach-name{font-weight:400;font-size:12px;color:var(--ink2);}
+.attach-view{font-size:12px;font-weight:600;color:var(--brand);cursor:pointer;}
+.attach-view:hover{color:var(--accent);}
+.fail-reason{background:var(--danger-bg);border:1px solid var(--danger-line);border-radius:10px;padding:15px 18px;text-align:left;margin-top:18px;}
+.fail-reason .fr-t{font-size:13px;font-weight:700;color:var(--danger);display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.fail-reason .fr-t svg{width:16px;height:16px;}
+.fail-reason .fr-d{font-size:12px;color:#b91c1c;line-height:1.8;}
+
+/* 状态：待审核 */
+.result-ico.wait{background:var(--warn-bg);color:var(--warn);border:2px solid var(--warn-line);}
+.result-ico.wait svg{animation:pulse 2.2s ease-in-out infinite;}
+.result-box h3.wait{color:var(--warn);}
+.result-badge.wait{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-line);}
+.pending-timeline{border-top:1px solid var(--line2);padding:6px 0 0;margin:18px 0 0;text-align:left;}
+.pt-item{display:flex;align-items:flex-start;gap:13px;padding:14px 0;position:relative;}
+.pt-item+.pt-item{border-top:1px dashed var(--line2);}
+.pt-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.pt-dot svg{width:13px;height:13px;}
+.pt-done .pt-dot{background:var(--success-bg);color:var(--success);border:1.5px solid var(--success-line);}
+.pt-doing .pt-dot{background:var(--warn-bg);color:var(--warn);border:1.5px solid var(--warn-line);animation:pulse 1.6s ease-in-out infinite;}
+.pt-todo .pt-dot{background:var(--bg2);color:var(--faint);border:1.5px solid var(--line);font-size:12px;font-weight:700;}
+.pt-body{flex:1;min-width:0;}
+.pt-t{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px;}
+.pt-doing .pt-t{color:var(--warn);}
+.pt-d{font-size:12px;color:var(--muted);line-height:1.6;}
+.pt-time{font-size:11px;color:var(--faint);flex-shrink:0;padding-top:3px;}
+.pt-doing .pt-time{color:var(--warn);}
+
+/* Toast */
+.wd-toast{position:fixed;left:50%;bottom:60px;transform:translateX(-50%) translateY(10px);background:var(--dark);color:#fff;font-size:13px;font-weight:500;padding:12px 22px;border-radius:12px;z-index:2000;display:none;white-space:nowrap;box-shadow:var(--shadow-lg);border:1px solid #26344d;transition:.26s;}
+.wd-toast::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:#6ea8fe;margin-right:10px;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<header class="ax-topbar">
+  <div class="ax-topbar-in">
+    <div class="ax-brand" onclick="location.href='home.html'">
+      <div class="ax-logo">5E</div>
+      <div class="ax-bname">5度易链<small>5 DEGREE EASY CHAIN</small></div>
+    </div>
+    <span class="ax-bdiv"></span>
+    <div class="ax-bname2">API开放平台</div>
+    <nav class="ax-hnav">
+      <a onclick="location.href='home.html'">首页</a>
+      <a onclick="location.href='home.html'">API市场<span class="ax-caret">▾</span></a>
+      <a>AI报告<span class="ax-caret">▾</span></a>
+      <a>应用中心<span class="ax-caret">▾</span></a>
+      <a>数据定制</a>
+      <span class="ax-pill">充值中心</span>
+      <span class="ax-bell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot">5</span></span>
+      <span class="ax-acct">177****5505<span class="ax-caret" style="color:#cdd8ea;">▾</span></span>
+    </nav>
+  </div>
+</header>
+
+<div class="pc-wrap">
+  <!-- 左侧栏 -->
+  <aside class="pc-side">
+    <div class="pc-user">
+      <div class="pc-avatar"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg></div>
+      <div class="pc-user-name">177****5505</div>
+      <button class="pc-charge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>充值</button>
+    </div>
+    <div class="pc-menu">
+      <div class="pc-mi"><svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l9-7 9 7v10a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1z"/></svg>中心首页</div>
+      <div class="pc-mi"><svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>数据中心<span class="mi-caret">⌄</span></div>
+      <div class="pc-mi"><svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>个人中心<span class="mi-caret">⌄</span></div>
+      <div class="pc-mi"><svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>通知中心<span class="mi-caret">⌄</span></div>
+      <div class="pc-mi open group-active"><svg class="mi-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.4 9.4-8 10-4.6-.6-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>安全中心<span class="mi-caret">⌄</span></div>
+      <div class="pc-sub">
+        <div class="pc-si active" onclick="showPanel('account')">账号设置</div>
+        <div class="pc-si" onclick="showPanel('cert')">企业认证</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 右侧内容 -->
+  <main class="pc-main">
+    <div class="pc-panel">
+      <!-- ===== 账号设置 ===== -->
+      <section id="panel-account">
+        <div class="pc-title">账号设置</div>
+
+        <div class="set-row">
+          <div class="set-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg></div>
+          <div class="set-info">
+            <div class="set-name">登录密码</div>
+            <div class="set-desc">安全性高的密码可以使账号更安全，建议定期更换密码，设置 6-20 位密码串</div>
+          </div>
+          <div class="set-act" onclick="demoAct('修改登录密码')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>修改</div>
+        </div>
+
+        <div class="set-row">
+          <div class="set-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M10 18h4"/></svg></div>
+          <div class="set-info">
+            <div class="set-name">手机号码 <span class="val">177****5505</span></div>
+            <div class="set-desc">安全手机可以用于登录账号，重置密码或其他安全验证</div>
+          </div>
+          <div class="set-act" onclick="demoAct('修改手机号码')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg>修改</div>
+        </div>
+
+        <div class="set-row">
+          <div class="set-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+          <div class="set-info">
+            <div class="set-name">邮箱 <span class="val">****</span> <span class="unbind">未绑定</span></div>
+            <div class="set-desc">邮箱可用于接收来自五度易链开放平台的各类告警、系统、服务通知</div>
+          </div>
+          <div class="set-act" onclick="demoAct('绑定邮箱')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7"/></svg>绑定</div>
+        </div>
+      </section>
+
+      <!-- ===== 企业认证 ===== -->
+      <section id="panel-cert" style="display:none;">
+        <!-- 状态1：上传营业执照 -->
+        <div id="cert-upload" style="display:none;">
+          <div class="pc-title" id="uploadTitle">上传营业执照</div>
+          <div class="cert-page">
+            <div class="cert-history" id="certHistory" style="display:none;">
+              <div class="ch-head"><div class="ch-title">当前认证状态</div><div class="ch-badge fail" id="chBadge">认证失败</div><span class="ch-detail" onclick="viewHistoryDetail()">查看认证详情 ›</span></div>
+              <div class="ch-row"><span class="ch-k">企业名称</span><span class="ch-v" id="chName">—</span></div>
+              <div class="ch-row"><span class="ch-k">申请编号</span><span class="ch-v" id="chNo">—</span></div>
+              <div class="ch-row"><span class="ch-k">提交时间</span><span class="ch-v" id="chTime">—</span></div>
+              <div class="ch-row ch-reason" id="chReasonRow"><span class="ch-k">失败原因</span><span class="ch-v" id="chReason">—</span></div>
+            </div>
+            <p class="cert-lead">请上传清晰、完整的营业执照，系统将自动识别并填写企业信息。</p>
+            <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+              <div class="up-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg></div>
+              <div class="up-t">点击上传营业执照</div>
+              <div class="up-s">支持 JPG / PNG / PDF 格式，文件大小不超过 10MB<br>请确保营业执照<em>四角完整、信息清晰无遮挡</em></div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none;" onchange="onFileChosen(event)">
+            <div class="cert-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>您上传的营业执照信息仅用于企业身份核验，我们将严格保密，不会用于其他用途。识别后的信息您可以自行核对与修改。</span></div>
+            <div class="cert-demo-link" onclick="startRecognize()">没有图片？使用示例营业执照体验识别流程 ›</div>
+          </div>
+        </div>
+
+        <!-- 状态2：识别中 -->
+        <div id="cert-recognizing" style="display:none;">
+          <div class="cert-loading">
+            <div class="spinner"></div>
+            <h3>正在识别营业执照信息</h3>
+            <p>系统正在智能提取图片中的企业信息，请稍候…</p>
+            <div class="load-steps">
+              <span class="load-step on">图像校正</span>
+              <span class="load-step on">文字检测</span>
+              <span class="load-step on">信息提取</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 状态3：信息确认（可编辑） -->
+        <div id="cert-form" style="display:none;">
+          <div class="pc-title">核对识别信息</div>
+          <div class="form-head">
+            <div class="fh-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div><div class="fh-t">识别成功</div><div class="fh-d">系统已自动提取营业执照信息，请仔细核对。如有误可直接修改，确认无误后提交审核。</div></div>
+          </div>
+          <div class="license-preview">
+            <div class="license-thumb" onclick="openLicensePreview()" title="点击预览营业执照"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 10h6M9 14h6"/></svg><img id="licenseThumbImg" alt="营业执照缩略图"></div>
+            <div class="license-meta"><div class="lm-t" id="licenseFileName">营业执照.jpg</div><div class="lm-s">识别时间：2026-11-19 15:04</div></div>
+            <div class="license-acts">
+              <span class="license-view" onclick="openLicensePreview()">预览</span>
+              <span class="license-reup" onclick="resetToUpload()">重新上传</span>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="fg full"><label>企业名称<span class="req">*</span></label><input id="f_name" value="小米科技有限责任公司"></div>
+            <div class="fg"><label>统一社会信用代码<span class="req">*</span></label><input id="f_code" value="91110108MA01X8K72R"></div>
+            <div class="fg"><label>法定代表人<span class="req">*</span></label><input id="f_legal" value="雷军"></div>
+            <div class="fg"><label>注册资本</label><input id="f_capital" value="1000万元人民币"></div>
+            <div class="fg"><label>成立日期</label><input id="f_date" value="2015年06月18日"></div>
+            <div class="fg"><label>类型</label><input id="f_type" value="有限责任公司(自然人投资或控股)"></div>
+            <div class="fg"><label>营业期限</label><input id="f_term" value="2015年06月18日至长期"></div>
+            <div class="fg full"><label>注册地址</label><input id="f_addr" value="北京市海淀区中关村大街27号中关村大厦12层"></div>
+            <div class="fg full"><label>经营范围</label><textarea id="f_scope" rows="3">技术开发、技术咨询、技术服务；数据处理（数据处理中的银行卡中心、PUE值在1.4以上的云计算数据中心除外）；企业信息咨询；销售自行开发的产品。（市场主体依法自主选择经营项目，开展经营活动；依法须经批准的项目，经相关部门批准后依批准的内容开展经营活动。）</textarea></div>
+            <div class="form-divider"></div>
+            <div class="form-section-title">联系人信息<span class="section-tip">请手动填写，系统不会自动识别</span></div>
+            <div class="fg"><label>部门名称<span class="req">*</span></label><input id="f_dept" placeholder="请输入您所在部门的名称"></div>
+            <div class="fg"><label>联系人姓名<span class="req">*</span></label><input id="f_contact" placeholder="请输入联系人姓名"></div>
+            <div class="fg full"><label>应用场景<span class="req">*</span></label>
+              <div class="scene-picker" id="scenePicker">
+                <div class="scene-trigger" onclick="toggleScene()"><span class="ph" id="sceneLabel">请选择数据使用场景</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+                <div class="scene-panel" id="scenePanel" style="display:none;">
+                  <div class="scene-col" id="sceneCol1"></div>
+                  <div class="scene-col" id="sceneCol2"></div>
+                </div>
+              </div>
+            </div>
+            <div class="fg full" id="sceneDescWrap" style="display:none;"><label>场景描述<span class="req">*</span></label>
+              <div class="scene-desc-box"><textarea id="f_scenedesc" maxlength="200" rows="4" placeholder="请输入您使用数据具体场景，场景描述利于快速处理您的认证申请" oninput="updateSceneCount()"></textarea><span class="scene-count"><span id="sceneCount">0</span> / 200</span></div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary" onclick="submitAudit()">确认无误，提交审核</button>
+            <button class="btn-ghost" onclick="resetToUpload()">重新上传</button>
+            <div class="sim-switch"><span>审核演示</span><div class="seg"><span class="on" id="simOk" onclick="setSim(true)">通过</span><span id="simFail" onclick="setSim(false)">驳回</span></div></div>
+          </div>
+        </div>
+
+        <!-- 状态4：审核中 -->
+        <div id="cert-auditing" style="display:none;">
+          <div class="cert-loading">
+            <div class="spinner"></div>
+            <h3>正在自动审核</h3>
+            <p>系统正在核验企业信息与证照真实性，通常几秒内完成，请稍候…</p>
+            <div class="load-steps">
+              <span class="load-step on">信息完整性校验</span>
+              <span class="load-step on">证照真实性核验</span>
+              <span class="load-step on">企业主体核验</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 状态5：待审核（人工审核） -->
+        <div id="cert-pending" style="display:none;">
+          <div class="result-box">
+            <!-- 上半部分：认证状态与过程 -->
+            <div class="cert-status-card">
+              <div class="status-head">
+                <div class="result-ico wait"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+                <div class="status-main">
+                  <h3 class="wait">认证审核中</h3>
+                  <div class="r-sub">您的企业认证申请已提交成功，正在等待人工审核</div>
+                </div>
+                <div class="result-badge wait">待审核</div>
+              </div>
+              <div class="pending-timeline">
+                <div class="pt-item pt-done">
+                  <div class="pt-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <div class="pt-body"><div class="pt-t">提交申请</div><div class="pt-d">您提交的资料已成功接收</div></div>
+                  <div class="pt-time" id="pt-time1">已完成</div>
+                </div>
+                <div class="pt-item pt-done">
+                  <div class="pt-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <div class="pt-body"><div class="pt-t">自动核验</div><div class="pt-d">企业信息与营业执照已完成系统自动校验</div></div>
+                  <div class="pt-time">已完成</div>
+                </div>
+                <div class="pt-item pt-doing">
+                  <div class="pt-dot" style="width:8px;height:8px;margin:8px 7px 0;background:var(--warn);"></div>
+                  <div class="pt-body"><div class="pt-t">人工审核</div><div class="pt-d">工作人员正在核验您的企业资料，人工审核通常需要 1–3 个工作日，请耐心等待</div></div>
+                  <div class="pt-time">进行中</div>
+                </div>
+                <div class="pt-item pt-todo">
+                  <div class="pt-dot">4</div>
+                  <div class="pt-body"><div class="pt-t">审核结果</div><div class="pt-d">审核完成后将以短信通知您，您也可随时在此查看进度</div></div>
+                  <div class="pt-time">待完成</div>
+                </div>
+              </div>
+              <div class="status-actions">
+                <button class="btn-ghost" onclick="resetToUpload()">撤回申请</button>
+              </div>
+              <div class="meta-line">审核期间如信息有误，可联系客服 010-68321050 咨询<span class="meta-link" onclick="previewAuditResult()">原型演示：查看审核结果 ›</span></div>
+            </div>
+            <!-- 下半部分：认证内容 -->
+            <div class="cert-content-title">认证内容<span class="section-tip">以下信息已随申请提交，将用于人工核验</span></div>
+            <div class="result-card">
+              <div class="rc-row"><span class="rc-k">企业名称</span><span class="rc-v" id="p_name">—</span></div>
+              <div class="rc-row"><span class="rc-k">统一社会信用代码</span><span class="rc-v" id="p_code">—</span></div>
+              <div class="rc-row"><span class="rc-k">法定代表人</span><span class="rc-v" id="p_legal">—</span></div>
+              <div class="rc-row"><span class="rc-k">注册资本</span><span class="rc-v" id="p_capital">—</span></div>
+              <div class="rc-row"><span class="rc-k">成立日期</span><span class="rc-v" id="p_date">—</span></div>
+              <div class="rc-row"><span class="rc-k">类型</span><span class="rc-v" id="p_type">—</span></div>
+              <div class="rc-row"><span class="rc-k">营业期限</span><span class="rc-v" id="p_term">—</span></div>
+              <div class="rc-row"><span class="rc-k">注册地址</span><span class="rc-v" id="p_addr">—</span></div>
+              <div class="rc-row"><span class="rc-k">经营范围</span><span class="rc-v rc-v-wrap" id="p_scope">—</span></div>
+              <div class="rc-row"><span class="rc-k">部门名称</span><span class="rc-v" id="p_dept">—</span></div>
+              <div class="rc-row"><span class="rc-k">联系人姓名</span><span class="rc-v" id="p_contact">—</span></div>
+              <div class="rc-row"><span class="rc-k">应用场景</span><span class="rc-v" id="p_scene">—</span></div>
+              <div class="rc-row"><span class="rc-k">场景描述</span><span class="rc-v rc-v-wrap" id="p_scenedesc">—</span></div>
+              <div class="rc-row rc-attach"><span class="rc-k">营业执照</span><span class="rc-v attach-cell"><span class="attach-thumb" onclick="openLicensePreview()"><img class="attach-img" alt="营业执照"></span><span class="attach-name">营业执照.jpg</span><span class="attach-view" onclick="openLicensePreview()">预览</span></span></div>
+              <div class="rc-row"><span class="rc-k">提交时间</span><span class="rc-v" id="p_time">—</span></div>
+              <div class="rc-row"><span class="rc-k">申请编号</span><span class="rc-v" id="p_no">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 状态6a：认证成功 -->
+        <div id="cert-success" style="display:none;">
+          <div class="result-box">
+            <!-- 上半部分：认证状态 -->
+            <div class="cert-status-card">
+              <div class="status-head">
+                <div class="result-ico ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                <div class="status-main">
+                  <h3 class="ok">认证成功</h3>
+                  <div class="r-sub">恭喜，您的企业已通过实名认证，相关权益已自动开通</div>
+                </div>
+                <div class="result-badge ok">已认证</div>
+              </div>
+              <div class="meta-line divided">如对认证结果有疑问，请联系客服 010-68321050<span class="meta-link" onclick="resetToUpload()">重新认证</span></div>
+            </div>
+            <!-- 下半部分：认证内容 -->
+            <div class="cert-content-title">认证内容<span class="section-tip">本次认证提交的全部信息与附件</span></div>
+            <div class="result-card">
+              <div class="rc-row"><span class="rc-k">企业名称</span><span class="rc-v" id="s_name">小米科技有限责任公司</span></div>
+              <div class="rc-row"><span class="rc-k">统一社会信用代码</span><span class="rc-v" id="s_code">91110108MA01X8K72R</span></div>
+              <div class="rc-row"><span class="rc-k">法定代表人</span><span class="rc-v" id="s_legal">雷军</span></div>
+              <div class="rc-row"><span class="rc-k">注册资本</span><span class="rc-v" id="s_capital">—</span></div>
+              <div class="rc-row"><span class="rc-k">成立日期</span><span class="rc-v" id="s_date">—</span></div>
+              <div class="rc-row"><span class="rc-k">类型</span><span class="rc-v" id="s_type">—</span></div>
+              <div class="rc-row"><span class="rc-k">营业期限</span><span class="rc-v" id="s_term">—</span></div>
+              <div class="rc-row"><span class="rc-k">注册地址</span><span class="rc-v" id="s_addr">—</span></div>
+              <div class="rc-row"><span class="rc-k">经营范围</span><span class="rc-v rc-v-wrap" id="s_scope">—</span></div>
+              <div class="rc-row"><span class="rc-k">部门名称</span><span class="rc-v" id="s_dept">—</span></div>
+              <div class="rc-row"><span class="rc-k">联系人姓名</span><span class="rc-v" id="s_contact">—</span></div>
+              <div class="rc-row"><span class="rc-k">应用场景</span><span class="rc-v" id="s_scene">—</span></div>
+              <div class="rc-row"><span class="rc-k">场景描述</span><span class="rc-v rc-v-wrap" id="s_scenedesc">—</span></div>
+              <div class="rc-row rc-attach"><span class="rc-k">营业执照</span><span class="rc-v attach-cell"><span class="attach-thumb" onclick="openLicensePreview()"><img class="attach-img" alt="营业执照"></span><span class="attach-name">营业执照.jpg</span><span class="attach-view" onclick="openLicensePreview()">预览</span></span></div>
+              <div class="rc-row"><span class="rc-k">认证时间</span><span class="rc-v" id="s_time">2026-11-19 15:04:36</span></div>
+              <div class="rc-row"><span class="rc-k">认证编号</span><span class="rc-v" id="s_no">WD-ENT-20261119-008436</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 状态5b：认证失败 -->
+        <div id="cert-fail" style="display:none;">
+          <div class="result-box">
+            <!-- 上半部分：认证状态与失败原因 -->
+            <div class="cert-status-card">
+              <div class="status-head">
+                <div class="result-ico no"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 8v5M12 17h.01"/><circle cx="12" cy="12" r="9"/></svg></div>
+                <div class="status-main">
+                  <h3 class="no">认证失败</h3>
+                  <div class="r-sub">很抱歉，您的企业认证未通过审核，请根据原因调整后重新提交</div>
+                </div>
+                <div class="result-badge no">认证未通过</div>
+              </div>
+              <div class="fail-reason">
+                <div class="fr-t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg>失败原因</div>
+                <div class="fr-d">营业执照图像模糊，统一社会信用代码关键信息识别不清晰，无法与工商登记数据准确匹配。请上传清晰、完整、四角无遮挡的营业执照原件照片后重新提交。</div>
+              </div>
+              <div class="status-actions">
+                <button class="btn-primary" onclick="resetToUpload()">重新提交认证</button>
+              </div>
+              <div class="meta-line">如确认信息无误，可联系客服 010-68321050 进行人工复核</div>
+            </div>
+            <!-- 下半部分：认证内容 -->
+            <div class="cert-content-title">认证内容<span class="section-tip">本次提交的全部信息与附件</span></div>
+            <div class="result-card">
+              <div class="rc-row"><span class="rc-k">企业名称</span><span class="rc-v" id="f_name_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">统一社会信用代码</span><span class="rc-v" id="f_code_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">法定代表人</span><span class="rc-v" id="f_legal_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">注册资本</span><span class="rc-v" id="f_capital_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">成立日期</span><span class="rc-v" id="f_date_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">类型</span><span class="rc-v" id="f_type_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">营业期限</span><span class="rc-v" id="f_term_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">注册地址</span><span class="rc-v" id="f_addr_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">经营范围</span><span class="rc-v rc-v-wrap" id="f_scope_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">部门名称</span><span class="rc-v" id="f_dept_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">联系人姓名</span><span class="rc-v" id="f_contact_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">应用场景</span><span class="rc-v" id="f_scene_r">—</span></div>
+              <div class="rc-row"><span class="rc-k">场景描述</span><span class="rc-v rc-v-wrap" id="f_scenedesc_r">—</span></div>
+              <div class="rc-row rc-attach"><span class="rc-k">营业执照</span><span class="rc-v attach-cell"><span class="attach-thumb" onclick="openLicensePreview()"><img class="attach-img" alt="营业执照"></span><span class="attach-name">营业执照.jpg</span><span class="attach-view" onclick="openLicensePreview()">预览</span></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- 营业执照预览弹窗 -->
+<div class="lic-lightbox" id="licLightbox" onclick="if(event.target===this)closeLicensePreview()">
+  <div class="lb-inner">
+    <div class="lb-head"><span id="lbTitle">营业执照预览</span><span class="lb-close" onclick="closeLicensePreview()">×</span></div>
+    <div class="lb-body"><img id="lbImg" alt="营业执照预览"></div>
+    <div class="lb-foot" id="lbFoot">营业执照.jpg</div>
+  </div>
+</div>
+
+<div class="wd-toast" id="toast"></div>
+
+<script>
+/* 面板切换 */
+function showPanel(which){
+  document.getElementById('panel-account').style.display = which==='account'?'':'none';
+  document.getElementById('panel-cert').style.display = which==='cert'?'':'none';
+  var si=document.querySelectorAll('.pc-si');
+  si[0].classList.toggle('active', which==='account');
+  si[1].classList.toggle('active', which==='cert');
+  if(which==='cert') enterCertPanel();
+}
+/* 进入企业认证板块：未认证→上传页；已认证/审核中→对应结果页 */
+function enterCertPanel(){
+  if(lastRecord){
+    if(lastRecord.status==='success'||lastRecord.status==='fail'){
+      viewHistoryDetail();
+      return;
+    }
+    if(lastRecord.status==='wait'){
+      setState('pending');
+      return;
+    }
+  }
+  resetToUpload();
+}
+
+/* 演示 toast */
+function demoAct(name){ toast('原型演示：'+name); }
+var _tt;
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  t.style.transform='translateX(-50%) translateY(0)'; t.style.opacity='1';
+  clearTimeout(_tt);
+  _tt=setTimeout(function(){ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(10px)'; setTimeout(function(){t.style.display='none';},260); },1900);
+}
+
+/* 企业认证流程 */
+var certState='upload';
+var simulateFail=false;
+var lastRecord=null;  // 上次提交的审核记录（用于重新认证时展示）
+var INFO_KEYS=['name','code','legal','capital','date','type','term','addr','scope','dept','contact','scene','scenedesc'];
+function fieldVal(key){
+  var el=document.getElementById(key==='scene'?'sceneLabel':'f_'+key);
+  if(!el) return '—';
+  return (('value' in el)?el.value:el.textContent).trim()||'—';
+}
+function captureRecord(status){
+  lastRecord=lastRecord||{};
+  lastRecord.status=status;
+  lastRecord.name=fieldVal('name');
+  var no=document.getElementById('p_no').textContent;
+  var time=document.getElementById('p_time').textContent;
+  if(no && no!=='—') lastRecord.no=no;
+  if(time && time!=='—') lastRecord.time=time;
+  if(status==='fail') lastRecord.reason=document.querySelector('#cert-fail .fr-d').textContent;
+  lastRecord.snap={};
+  INFO_KEYS.forEach(function(k){ lastRecord.snap[k]=fieldVal(k); });
+  lastRecord.license=licenseImg||DEMO_LICENSE;
+  lastRecord.fileName=document.getElementById('licenseFileName').textContent||'营业执照.jpg';
+}
+function renderHistory(){
+  var box=document.getElementById('certHistory');
+  var title=document.getElementById('uploadTitle');
+  if(!lastRecord){ box.style.display='none'; title.textContent='上传营业执照'; return; }
+  box.style.display='';
+  title.textContent='重新提交认证';
+  var map={fail:['认证失败','fail'],success:['认证成功','ok'],wait:['审核中','wait'],void:['已撤回','void']};
+  var m=map[lastRecord.status]||map.fail;
+  var badge=document.getElementById('chBadge');
+  badge.textContent=m[0]; badge.className='ch-badge '+m[1];
+  document.getElementById('chName').textContent=lastRecord.name||'—';
+  document.getElementById('chNo').textContent=lastRecord.no||'—';
+  document.getElementById('chTime').textContent=lastRecord.time||'—';
+  var reasonRow=document.getElementById('chReasonRow');
+  reasonRow.style.display=lastRecord.status==='fail'?'':'none';
+  if(lastRecord.status==='fail') document.getElementById('chReason').textContent=lastRecord.reason||'—';
+}
+function viewHistoryDetail(){
+  var st=lastRecord&&lastRecord.status;
+  if(st!=='success'&&st!=='fail'){ toast('该申请暂无审核结果详情'); return; }
+  var snap=lastRecord.snap||{};
+  var pre=st==='success'?'s_':'f_', suf=st==='success'?'':'_r';
+  INFO_KEYS.forEach(function(k){
+    var el=document.getElementById(pre+k+suf);
+    if(el) el.textContent=snap[k]||'—';
+  });
+  if(st==='success'){
+    document.getElementById('s_time').textContent=lastRecord.time||'—';
+    document.getElementById('s_no').textContent=lastRecord.no||'—';
+  }
+  document.querySelectorAll('.attach-img').forEach(function(img){ img.src=lastRecord.license||DEMO_LICENSE; });
+  document.querySelectorAll('.attach-name').forEach(function(el){ el.textContent=lastRecord.fileName||'营业执照.jpg'; });
+  setState(st);
+}
+function setState(s){
+  certState=s;
+  ['cert-upload','cert-recognizing','cert-form','cert-auditing','cert-pending','cert-success','cert-fail'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+  });
+  document.getElementById('cert-'+s).style.display='';
+}
+function setSim(ok){
+  simulateFail=!ok;
+  document.getElementById('simOk').classList.toggle('on',ok);
+  document.getElementById('simFail').classList.toggle('on',!ok);
+  document.getElementById('simFail').classList.toggle('fail',!ok);
+}
+/* 营业执照预览 */
+var licenseImg='';   // 当前营业执照图片 dataURL（真实上传或示例图）
+/* 示例营业执照（SVG 模拟） */
+var DEMO_LICENSE='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">'+
+  '<rect x="0" y="0" width="1000" height="700" fill="#fffdf7"/>'+
+  '<rect x="18" y="18" width="964" height="664" fill="none" stroke="#c9a063" stroke-width="3"/>'+
+  '<rect x="26" y="26" width="948" height="648" fill="none" stroke="#c9a063" stroke-width="1"/>'+
+  '<g fill="#b02020" transform="translate(500,95)"><circle cx="0" cy="0" r="30" fill="none" stroke="#b02020" stroke-width="3"/><path d="M-16 -2 L0 -16 L16 -2 L0 6 Z"/><path d="M-14 10 L14 10" stroke="#b02020" stroke-width="3"/></g>'+
+  '<text x="500" y="168" text-anchor="middle" font-family="SimHei,STHeiti,sans-serif" font-size="40" font-weight="bold" fill="#b02020" letter-spacing="10">营业执照</text>'+
+  '<text x="500" y="200" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#8a6a3a">统一社会信用代码 91110108MA01X8K72R</text>'+
+  '<g font-family="SimSun,STSong,serif" font-size="19" fill="#2a2a2a">'+
+  '<text x="70" y="258">名　　称</text><text x="180" y="258" font-weight="bold" font-size="22">小米科技有限责任公司</text>'+
+  '<text x="70" y="304">类　　型</text><text x="180" y="304">有限责任公司(自然人投资或控股)</text>'+
+  '<text x="70" y="350">法定代表人</text><text x="180" y="350">雷军</text>'+
+  '<text x="70" y="396">注册资本</text><text x="180" y="396">1000万元人民币</text>'+
+  '<text x="70" y="442">成立日期</text><text x="180" y="442">2015年06月18日</text>'+
+  '<text x="70" y="488">营业期限</text><text x="180" y="488">2015年06月18日至长期</text>'+
+  '<text x="70" y="534">住　　所</text><text x="180" y="534">北京市海淀区中关村大街27号中关村大厦12层</text>'+
+  '</g>'+
+  '<line x1="70" y1="556" x2="930" y2="556" stroke="#d8c9a8" stroke-width="1"/>'+
+  '<text x="70" y="592" font-family="SimSun,STSong,serif" font-size="16" fill="#555">经营范围　技术开发、技术咨询、技术服务；数据处理；企业信息咨询；销售自行开发的产品。</text>'+
+  '<text x="70" y="636" font-family="SimSun,STSong,serif" font-size="15" fill="#555">登记机关　北京市海淀区市场监督管理局</text>'+
+  '<g transform="translate(820,590) rotate(-14)"><circle cx="0" cy="0" r="66" fill="none" stroke="#c0392b" stroke-width="5" opacity=".8"/><text x="0" y="-8" text-anchor="middle" font-family="SimHei,sans-serif" font-size="15" fill="#c0392b" opacity=".85">北京市海淀区</text><text x="0" y="16" text-anchor="middle" font-family="SimHei,sans-serif" font-size="17" fill="#c0392b" opacity=".85">市场监督管理局</text></g>'+
+  '</svg>'
+);
+function setLicenseImage(src,name){
+  licenseImg=src;
+  var img=document.getElementById('licenseThumbImg');
+  img.src=src; img.style.display='block';
+  document.querySelector('.license-thumb svg').style.display='none';
+  if(name) document.getElementById('licenseFileName').textContent=name;
+}
+function openLicensePreview(){
+  var src=licenseImg||DEMO_LICENSE;
+  document.getElementById('lbImg').src=src;
+  var name=document.getElementById('licenseFileName').textContent||'营业执照.jpg';
+  document.getElementById('lbTitle').textContent='营业执照预览';
+  document.getElementById('lbFoot').textContent=name;
+  document.getElementById('licLightbox').classList.add('show');
+}
+function closeLicensePreview(){ document.getElementById('licLightbox').classList.remove('show'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeLicensePreview(); });
+function onFileChosen(e){
+  var f=e.target.files && e.target.files[0];
+  if(!f) return;
+  if(f.type && f.type.indexOf('image/')===0){
+    var reader=new FileReader();
+    reader.onload=function(){ setLicenseImage(reader.result, f.name); };
+    reader.readAsDataURL(f);
+  } else {
+    document.getElementById('licenseFileName').textContent=f.name;
+  }
+  startRecognize();
+}
+function startRecognize(){
+  // 未上传真实图片时用示例图填充预览
+  if(!licenseImg) setLicenseImage(DEMO_LICENSE,'营业执照.jpg');
+  setState('recognizing');
+  setTimeout(function(){ setState('form'); }, 1600);
+}
+function pad2(n){ return n<10?'0'+n:''+n; }
+function nowStr(){
+  var d=new Date();
+  return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())+' '+pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds());
+}
+function syncResultInfo(){
+  var name=document.getElementById('f_name').value||'—';
+  var code=document.getElementById('f_code').value||'—';
+  var legal=document.getElementById('f_legal').value||'—';
+  var capital=document.getElementById('f_capital').value||'—';
+  var date=document.getElementById('f_date').value||'—';
+  var type=document.getElementById('f_type').value||'—';
+  var term=document.getElementById('f_term').value||'—';
+  var addr=document.getElementById('f_addr').value||'—';
+  var scope=document.getElementById('f_scope').value||'—';
+  var dept=document.getElementById('f_dept').value||'—';
+  var contact=document.getElementById('f_contact').value||'—';
+  var scene=sceneL1&&sceneL2?(sceneL1+' / '+sceneL2):(document.getElementById('sceneLabel').classList.contains('ph')?'—':document.getElementById('sceneLabel').textContent);
+  var scenedesc=document.getElementById('f_scenedesc').value||'—';
+  ['s_name','p_name','f_name_r'].forEach(function(id){ document.getElementById(id).textContent=name; });
+  ['s_code','p_code','f_code_r'].forEach(function(id){ document.getElementById(id).textContent=code; });
+  ['s_legal','p_legal','f_legal_r'].forEach(function(id){ document.getElementById(id).textContent=legal; });
+  ['s_capital','p_capital','f_capital_r'].forEach(function(id){ document.getElementById(id).textContent=capital; });
+  ['s_date','p_date','f_date_r'].forEach(function(id){ document.getElementById(id).textContent=date; });
+  ['s_type','p_type','f_type_r'].forEach(function(id){ document.getElementById(id).textContent=type; });
+  ['s_term','p_term','f_term_r'].forEach(function(id){ document.getElementById(id).textContent=term; });
+  ['s_addr','p_addr','f_addr_r'].forEach(function(id){ document.getElementById(id).textContent=addr; });
+  ['s_scope','p_scope','f_scope_r'].forEach(function(id){ document.getElementById(id).textContent=scope; });
+  ['s_dept','p_dept','f_dept_r'].forEach(function(id){ document.getElementById(id).textContent=dept; });
+  ['s_contact','p_contact','f_contact_r'].forEach(function(id){ document.getElementById(id).textContent=contact; });
+  ['s_scene','p_scene','f_scene_r'].forEach(function(id){ document.getElementById(id).textContent=scene; });
+  ['s_scenedesc','p_scenedesc','f_scenedesc_r'].forEach(function(id){ document.getElementById(id).textContent=scenedesc; });
+  // 附件缩略图与文件名同步到所有结果页
+  var src=licenseImg||DEMO_LICENSE;
+  var fileName=document.getElementById('licenseFileName').textContent||'营业执照.jpg';
+  document.querySelectorAll('.attach-img').forEach(function(img){ img.src=src; });
+  document.querySelectorAll('.attach-name').forEach(function(el){ el.textContent=fileName; });
+}
+function submitAudit(){
+  syncResultInfo();
+  var t=nowStr();
+  document.getElementById('p_time').textContent=t;
+  document.getElementById('pt-time1').textContent=t.slice(11);
+  var seq=Math.floor(1000+Math.random()*8999);
+  document.getElementById('p_no').textContent='WD-ENT-'+t.slice(0,10).replace(/-/g,'')+'-'+seq;
+  captureRecord('wait');
+  setState('auditing');
+  setTimeout(function(){ setState('pending'); }, 2000);
+}
+/* 演示：从待审核跳转审核结果（通过/驳回） */
+function previewAuditResult(){
+  captureRecord(simulateFail?'fail':'success');
+  setState(simulateFail?'fail':'success');
+}
+/* 应用场景二级级联 */
+var SCENE_DATA={
+  '企业认证准入审核':['合作企业信息核验','企业信息认证核验','客户画像身份识别','注册入驻信息核验','供应商/客户资质审核','供应链上下游信息核实','项目申报资质核查'],
+  '数据录入清洗补全':['工商信息录入','开票信息税号录入'],
+  '拓客潜在客户搜索':['自研系统企业信息搜索','营销拓客与市场推广策略','垂直维度数据查询'],
+  '合作风险排查监控':['合作风险监控排查','合同审查企业信息核实','供应链风险管理']
+};
+var sceneL1='',sceneL2='';
+function renderScene(){
+  var c1=document.getElementById('sceneCol1'),c2=document.getElementById('sceneCol2');
+  c1.innerHTML='';
+  Object.keys(SCENE_DATA).forEach(function(k){
+    var o=document.createElement('div');
+    o.className='scene-opt'+(sceneL1===k?' active':'');
+    o.innerHTML='<span>'+k+'</span><span class="caret">›</span>';
+    o.onclick=function(ev){ ev.stopPropagation(); sceneL1=k; sceneL2=''; renderScene(); };
+    c1.appendChild(o);
+  });
+  c2.innerHTML='';
+  if(sceneL1){
+    SCENE_DATA[sceneL1].forEach(function(v){
+      var o=document.createElement('div');
+      o.className='scene-opt'+(sceneL2===v?' active':'');
+      o.textContent=v;
+      o.onclick=function(ev){ ev.stopPropagation(); pickScene(v); };
+      c2.appendChild(o);
+    });
+  }else{
+    c2.innerHTML='<div class="scene-empty">请先选择左侧场景分类</div>';
+  }
+}
+function toggleScene(){
+  var p=document.getElementById('scenePicker'),panel=document.getElementById('scenePanel');
+  var open=p.classList.toggle('open');
+  panel.style.display=open?'flex':'none';
+  if(open) renderScene();
+}
+function pickScene(v){
+  sceneL2=v;
+  document.getElementById('sceneLabel').textContent=sceneL1+' / '+v;
+  document.getElementById('sceneLabel').classList.remove('ph');
+  document.getElementById('scenePanel').style.display='none';
+  document.getElementById('scenePicker').classList.remove('open');
+  document.getElementById('sceneDescWrap').style.display='';
+}
+function updateSceneCount(){
+  document.getElementById('sceneCount').textContent=document.getElementById('f_scenedesc').value.length;
+}
+function resetScene(){
+  sceneL1='';sceneL2='';
+  document.getElementById('sceneLabel').textContent='请选择数据使用场景';
+  document.getElementById('sceneLabel').classList.add('ph');
+  document.getElementById('sceneDescWrap').style.display='none';
+  document.getElementById('f_scenedesc').value='';
+  document.getElementById('sceneCount').textContent='0';
+  document.getElementById('scenePanel').style.display='none';
+  document.getElementById('scenePicker').classList.remove('open');
+}
+/* 点击外部收起场景面板 */
+document.addEventListener('click',function(e){
+  var p=document.getElementById('scenePicker');
+  if(p && !p.contains(e.target)){
+    p.classList.remove('open');
+    document.getElementById('scenePanel').style.display='none';
+  }
+});
+function resetToUpload(){
+  if(certState==='pending') captureRecord('void');
+  licenseImg='';
+  var img=document.getElementById('licenseThumbImg');
+  img.removeAttribute('src'); img.style.display='none';
+  document.querySelector('.license-thumb svg').style.display='';
+  document.getElementById('licenseFileName').textContent='营业执照.jpg';
+  setState('upload'); resetScene(); renderHistory();
+}
+</script>
+</body>
+</html>
