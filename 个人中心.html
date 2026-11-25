@@ -134,7 +134,6 @@ input,textarea{font-family:inherit;}
 .dropzone .up-s em{font-style:normal;color:var(--brand);font-weight:600;}
 .cert-note{margin-top:18px;display:flex;align-items:flex-start;gap:8px;text-align:left;background:var(--bg2);border:1px solid var(--line2);border-radius:9px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.7;}
 .cert-note svg{width:15px;height:15px;flex-shrink:0;color:var(--brand);margin-top:2px;}
-.cert-demo-link{margin-top:14px;font-size:12px;color:var(--brand);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
 /* 当前认证状态 */
 .cert-history{background:var(--bg2);border:1px solid var(--line2);border-radius:10px;padding:14px 16px;margin-bottom:20px;text-align:left;}
 .ch-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
@@ -225,7 +224,22 @@ input,textarea{font-family:inherit;}
 .form-section-title::before{content:'';width:3px;height:13px;border-radius:2px;background:var(--brand);}
 .form-section-title .section-tip{font-size:11px;font-weight:400;color:var(--muted);}
 .fg input::placeholder,.fg textarea::placeholder{color:#aeb8c8;}
-.form-actions{display:flex;align-items:center;gap:12px;margin-top:26px;padding-top:20px;border-top:1px solid var(--line2);}
+/* 认证服务协议勾选 */
+.agreement-row{display:flex;align-items:center;gap:8px;margin-top:20px;font-size:13px;color:var(--ink2);user-select:none;}
+.agreement-check{appearance:none;-webkit-appearance:none;width:16px;height:16px;flex-shrink:0;border:1.5px solid #b9c6da;border-radius:4px;background:#fff;cursor:pointer;position:relative;transition:.15s;margin:0;}
+.agreement-check:hover{border-color:var(--brand);}
+.agreement-check:checked{background:var(--brand);border-color:var(--brand);}
+.agreement-check:checked::after{content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.agreement-link{color:var(--brand);cursor:pointer;}
+.agreement-link:hover{text-decoration:underline;text-underline-offset:3px;}
+/* 协议正文弹窗 */
+.agreement-doc{padding:24px 28px;overflow-y:auto;max-height:70vh;text-align:left;}
+.agreement-doc h4{font-family:var(--fd);font-size:16px;font-weight:800;color:var(--ink);text-align:center;margin-bottom:6px;}
+.agreement-doc .ad-date{text-align:center;font-size:11px;color:var(--faint);margin-bottom:20px;}
+.agreement-doc p{font-size:13px;color:var(--ink2);line-height:1.9;margin-bottom:12px;text-indent:2em;}
+.agreement-doc .ad-h{font-weight:700;color:var(--ink);text-indent:0;margin-top:16px;}
+.agreement-doc .ad-end{text-align:right;text-indent:0;color:var(--muted);margin-top:20px;}
+.form-actions{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:18px;border-top:1px solid var(--line2);}
 .btn-primary{padding:11px 26px;background:var(--brand-grad);color:#fff;border-radius:9px;font-size:14px;font-weight:700;box-shadow:0 8px 18px var(--glow);transition:.2s;}
 .btn-primary:hover{transform:translateY(-1px);}
 .btn-ghost{padding:11px 22px;border:1px solid var(--line);border-radius:9px;font-size:14px;font-weight:600;color:var(--ink2);transition:.2s;}
@@ -408,7 +422,6 @@ input,textarea{font-family:inherit;}
             </div>
             <input type="file" id="fileInput" accept="image/*,.pdf" style="display:none;" onchange="onFileChosen(event)">
             <div class="cert-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>您上传的营业执照信息仅用于企业身份核验，我们将严格保密，不会用于其他用途。识别后的信息您可以自行核对与修改。</span></div>
-            <div class="cert-demo-link" onclick="startRecognize()">没有图片？使用示例营业执照体验识别流程 ›</div>
           </div>
         </div>
 
@@ -467,6 +480,10 @@ input,textarea{font-family:inherit;}
             <div class="fg full" id="sceneDescWrap" style="display:none;"><label>场景描述<span class="req">*</span></label>
               <div class="scene-desc-box"><textarea id="f_scenedesc" maxlength="200" rows="4" placeholder="请输入您使用数据具体场景，场景描述利于快速处理您的认证申请" oninput="updateSceneCount()"></textarea><span class="scene-count"><span id="sceneCount">0</span> / 200</span></div>
             </div>
+          </div>
+          <div class="agreement-row">
+            <input type="checkbox" class="agreement-check" id="agreementCheck">
+            <span>我已阅读并同意<span class="agreement-link" onclick="openAgreement(event)">《五度易链API开放平台认证服务协议》</span></span>
           </div>
           <div class="form-actions">
             <button class="btn-primary" onclick="submitAudit()">确认无误，提交审核</button>
@@ -643,6 +660,33 @@ input,textarea{font-family:inherit;}
     <div class="lb-head"><span id="lbTitle">营业执照预览</span><span class="lb-close" onclick="closeLicensePreview()">×</span></div>
     <div class="lb-body"><img id="lbImg" alt="营业执照预览"></div>
     <div class="lb-foot" id="lbFoot">营业执照.jpg</div>
+  </div>
+</div>
+
+<!-- 认证服务协议弹窗 -->
+<div class="lic-lightbox" id="agreementLightbox" onclick="if(event.target===this)closeAgreement()">
+  <div class="lb-inner">
+    <div class="lb-head"><span>五度易链API开放平台认证服务协议</span><span class="lb-close" onclick="closeAgreement()">×</span></div>
+    <div class="agreement-doc">
+      <h4>五度易链API开放平台认证服务协议</h4>
+      <p>欢迎您使用五度易链API开放平台认证服务！</p>
+      <p>为使用五度易链API开放平台认证服务（以下亦称“本服务”），请您务必审慎阅读、充分理解各条款内容，阅读并确认同意遵守《五度易链API开放平台认证服务协议》（以下简称“本协议”），特别是免除或限制责任的相应条款，并选择接受或不接受。限制、免责条款将以加粗形式提示您注意。</p>
+      <p>除非您已阅读并同意接受本协议所有条款，否则您无权使用五度易链API开放平台的平台认证服务。</p>
+      <p>您对本服务的“同意”操作等行为即视为您已阅读并同意本协议的约束。</p>
+      <p class="ad-h">1、协议适用主体范围</p>
+      <p>本协议是您与北京笃威尔数字技术有限公司（以下简称“笃威尔”）之间关于您使用五度易链API开放平台的平台认证服务所订立的协议。</p>
+      <p class="ad-h">2、五度易链API开放平台认证内容</p>
+      <p>2.1 五度易链API开放平台认证服务：是指符合一定条件的企业用户可以对五度易链API开放平台账号申请平台认证。</p>
+      <p>2.2 企业用户可以通过提交申请资料完成认证，需提交的资料有企业全称、统一社会信用代码、法定代表人、所在部门、应用场景、营业执照等。</p>
+      <p>2.3 企业用户若发现自己的企业已经被人抢先认证，可以申请申诉，申诉需要提供申请书、营业执照、法定代表人手持身份证等。</p>
+      <p>2.4 企业用户若采用虚假材料冒领其他用户的五度易链API开放平台认证信息，则不受到平台认可，否则，笃威尔有权拒绝或终止提供本服务，并视情况报送公安部门依法处理。</p>
+      <p class="ad-h">3、用户权利和义务</p>
+      <p>3.1 申请认证人承诺：提交给笃威尔认证的资料真实无误，并不可撤销地授权笃威尔对提交的资料进行甄别核实。如用户提供服务或内容需要取得相关法律法规规定的许可或进行备案的，用户应当主动进行明确说明并提交相应的许可或备案证明。否则，笃威尔有权拒绝或终止提供本服务，并依照本协议对违规帐号进行处罚。</p>
+      <p>3.2 认证通过后，用户应当在资料和信息变更时及时提出补充认证申请，如因修改或增加企业信息导致的一切后果皆由认证企业自行承担。</p>
+      <p class="ad-h">4、五度易链API开放平台认证免责声明</p>
+      <p>4.1 “五度易链API开放平台认证服务”是由笃威尔自行或委托第三方认证机构，通过对企业提交的电子版本基础材料在线上进行形式一致性审查。因笃威尔无法对申请认证企业进行实地考察或其他实质性审核调查，请您知悉并同意：笃威尔对相关企业的认证并不视为对该认证企业登记信息与实际情况一致性的保证，认证企业的登记信息与实际情况是否相符由您负责掌握和判断，笃威尔的五度易链API开放平台认证服务不构成对任何人之明示或暗示的认可或保证。</p>
+      <p>4.2 认证企业出现违法、违规或违反《五度易链API开放平台认证服务协议》的行为时，笃威尔有权取消该企业认证，并以下线证书等形式作废五度易链API开放平台认证证书，同时不予退款。</p>
+    </div>
   </div>
 </div>
 
@@ -854,7 +898,18 @@ function syncResultInfo(){
   document.querySelectorAll('.attach-img').forEach(function(img){ img.src=src; });
   document.querySelectorAll('.attach-name').forEach(function(el){ el.textContent=fileName; });
 }
+/* 认证服务协议 */
+function openAgreement(e){
+  if(e) e.stopPropagation();
+  document.getElementById('agreementLightbox').classList.add('show');
+}
+function closeAgreement(){ document.getElementById('agreementLightbox').classList.remove('show'); }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeAgreement(); });
 function submitAudit(){
+  if(!document.getElementById('agreementCheck').checked){
+    toast('请先阅读并同意《五度易链API开放平台认证服务协议》');
+    return;
+  }
   syncResultInfo();
   var t=nowStr();
   document.getElementById('p_time').textContent=t;
@@ -943,6 +998,7 @@ function resetToUpload(){
   img.removeAttribute('src'); img.style.display='none';
   document.querySelector('.license-thumb svg').style.display='';
   document.getElementById('licenseFileName').textContent='营业执照.jpg';
+  document.getElementById('agreementCheck').checked=false;
   setState('upload'); resetScene(); renderHistory();
 }
 </script>
