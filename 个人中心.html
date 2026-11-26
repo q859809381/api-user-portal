@@ -418,9 +418,9 @@ input,textarea{font-family:inherit;}
             <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
               <div class="up-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg></div>
               <div class="up-t">点击上传营业执照</div>
-              <div class="up-s">支持 JPG / JPEG / PNG / BMP / GIF / TIFF / WebP 格式，文件大小不超过 10MB<br>请确保营业执照<em>四角完整、信息清晰无遮挡</em></div>
+              <div class="up-s">支持 JPG / JPEG / PNG / GIF 格式，文件大小不超过 10MB<br>请确保营业执照<em>四角完整、信息清晰无遮挡</em></div>
             </div>
-            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.bmp,.gif,.tiff,.tif,.webp" style="display:none;" onchange="onFileChosen(event)">
+            <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif" style="display:none;" onchange="onFileChosen(event)">
             <div class="cert-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>您上传的营业执照信息仅用于企业身份核验，我们将严格保密，不会用于其他用途。识别后的信息您可以自行核对与修改。</span></div>
           </div>
         </div>
